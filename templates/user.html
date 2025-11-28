@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="display:flex; gap:20px; align-items:center; margin-bottom:20px;">
+    <div class="avatar" style="width:72px; height:72px; font-size:2rem;">{{ channel.username[0].upper() }}</div>
+    <div>
+        <h2 style="margin:0;"><a href="{{ url_for('user_profile', username=channel.username) }}" style="color:inherit;">{{ channel.display_name or channel.username }}</a></h2>
+        <p style="margin:4px 0 0 0; color:var(--text-sec);">{{ subs_count }} subscribers • {{ channel.location or 'Unknown region' }}</p>
+        <p style="margin:2px 0 0 0; color:var(--text-sec); font-size:0.9rem;">Joined {{ channel.date_joined|format_date }}</p>
+    <div>
+        <h2 style="margin:0;"><a href="{{ url_for('user_profile', username=channel.username) }}" style="color:inherit;">{{ channel.display_name or channel.username }}</a></h2>
+        <p style="margin:4px 0 0 0; color:var(--text-sec);">{{ channel.location or 'Region unknown' }} &middot; Joined {{ channel.date_joined|format_date }}</p>
+    </div>
+                <form method="POST" action="{{ url_for('subscribe', channel_id=channel.id) }}">
+                    <button class="btn btn-accent">{% if is_subscribed %}Unsubscribe{% else %}Subscribe{% endif %}</button>
+                </form>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<h3>Videos</h3>
+{% if videos|length == 0 %}
+    <p style="color:var(--text-sec);">No videos available.</p>
+{% else %}
+    <div class="video-grid">
+        {% for video in videos %}
+        <div class="video-card">
+            <a href="{{ url_for('watch', video_id=video.id) }}">
+                <div class="thumbnail">
+                    {% if video.thumbnail %}
+                        <img src="{{ url_for('uploaded_file', filename=video.thumbnail) }}" alt="{{ video.title }}" style="width:100%; height:180px; object-fit:cover; border-radius:12px;">
+                    {% else %}
+                        <span class="thumbnail-icon">▶</span>
+                    {% endif %}
+                </div>
+            </a>
+            <div class="video-info">
+                <div class="avatar">{{ channel.username[0].upper() }}</div>
+                    <div class="details">
+                        <h3>{{ video.title }}</h3>
+                        <p style="margin:4px 0 0 0; color:var(--text-sec);">{{ video.views }} views • {{ video.upload_date|format_date }}</p>
+                    </div>
+            </div>
+            {% if current_user.is_authenticated and current_user.id == channel.id %}
+            <div style="display:flex; gap:8px; margin-top:8px;">
+                
+                <form method="POST" action="{{ url_for('delete_video', video_id=video.id) }}">
+                    <button class="btn btn-primary">Delete</button>
+                </form>
+                <form method="POST" action="{{ url_for('toggle_visibility', video_id=video.id) }}">
+                    <select name="visibility">
+                        <option value="public" {% if video.is_public %}selected{% endif %}>Public</option>
+                        <option value="private" {% if not video.is_public %}selected{% endif %}>Private</option>
+                    </select>
+                    <button class="btn">Update</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% endblock %}

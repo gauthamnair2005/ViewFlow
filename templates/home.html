@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h2 style="margin-bottom: 20px;">Recommended</h2>
+    {% if videos|length == 0 %}
+        <div style="text-align: center; padding: 50px;">
+            <h3>No videos yet!</h3>
+            <p>Be the first to upload content to ViewFlow.</p>
+        </div>
+    {% else %}
+        <div class="video-grid">
+            {% for video in videos %}
+            <a href="{{ url_for('watch', video_id=video.id) }}" class="video-card">
+                <div class="thumbnail">
+                    {% if video.thumbnail %}
+                        <img src="{{ url_for('uploaded_file', filename=video.thumbnail) }}" alt="{{ video.title }}" style="width:100%; height:180px; object-fit:cover; border-radius:12px;">
+                    {% else %}
+                        <span class="thumbnail-icon">▶</span>
+                    {% endif %}
+                </div>
+                <div class="video-info">
+                    <div class="avatar">{{ (video.uploader.username or 'U')[0].upper() }}</div>
+                    <div class="details">
+                        <h3>{{ video.title }}</h3>
+                        <p style="margin:4px 0 0 0; color:var(--text-sec);">
+                            <a href="{{ url_for('user_profile', username=video.uploader.username) }}">{{ video.uploader.display_name or video.uploader.username }}</a>
+                            &middot; {{ video.views }} views • {{ video.upload_date|format_date }}
+                        </p>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}

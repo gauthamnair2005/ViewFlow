@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.log
+venv/
+.venv/
+.env
+env/
+ENV/
+node_modules/
+.DS_Store
+/.idea/
+.vscode/
+
+# Do not commit local database and uploads
+viewflow.db
+*.db
+uploads/

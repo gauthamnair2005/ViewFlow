@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViewFlow - {{ title }}</title>
+    <link rel="stylesheet" href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/11.0.0/css/fabric.min.css">
+    {% if config.VIDEOJS_LOCAL %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/video-js.css') }}">
+    {% else %}
+    <link rel="stylesheet" href="https://vjs.zencdn.net/8.20.0/video-js.css">
+    {% endif %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="ms-Fabric theme-dark">
+    <nav class="navbar">
+        <a href="{{ url_for('home') }}" class="logo">▶ View<span>Flow</span></a>
+        <input type="text" placeholder="Search" class="search-input">
+        <div class="nav-links">
+            <button id="theme-toggle" title="Toggle theme" class="btn" style="margin-right:8px;">🌙</button>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('upload') }}" class="btn btn-accent">+ Upload</a>
+                <span>{{ current_user.display_name or current_user.username }}</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-primary">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-primary">Sign In</a>
+            {% endif %}
+        </div>
+    </nav>
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+    <footer>
+        <p>Developed by <strong>Gautham Nair</strong> & <strong>Deepak Patel</strong></p>
+        <p>&copy; 2025 View<span>Flow</span> Project</p>
+    </footer>
+</body>
+{% if config.VIDEOJS_LOCAL %}
+<script src="{{ url_for('static', filename='vendor/video.min.js') }}"></script>
+{% else %}
+<script src="https://vjs.zencdn.net/8.20.0/video.min.js"></script>
+{% endif %}
+<script src="{{ url_for('static', filename='theme.js') }}"></script>
+<script src="{{ url_for('static', filename='player.js') }}"></script>
+<script src="{{ url_for('static', filename='async_actions.js') }}"></script>
+</html>

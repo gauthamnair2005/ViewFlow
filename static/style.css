@@ -1,0 +1,242 @@
+:root {
+    --bg-color: #0f0f0f;
+    --card-bg: rgba(30,30,30,0.65);
+    --text-main: #ffffff; /* pure white */
+    --text-sec: #bfbfbf;
+    --muted: #555555;
+    --accent: #0078d4;
+    --nav-height: 60px;
+    --border: rgba(255,255,255,0.06);
+    --player-bg: #000000;
+    --control-bg: rgba(0,0,0,0.55);
+    --btn-bg: rgba(255,255,255,0.04);
+    --progress-bg: rgba(255,255,255,0.06);
+    --tooltip-bg: rgba(0,0,0,0.8);
+    --tooltip-fg: var(--text-main);
+}
+body { margin: 0; font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--bg-color); color: var(--text-main); }
+
+/* Light theme overrides applied when `body.theme-light` is present */
+body.theme-light {
+    --bg-color: linen;
+    --card-bg: rgba(255,250,240,0.96);
+    --text-main: #111111; /* darker text for light theme */
+    --text-sec: #444444;
+    --muted: #777777;
+    --accent: #0066cc;
+    --border: rgba(0,0,0,0.08);
+    --player-bg: #f6f6f6;
+    --control-bg: rgba(255,255,255,0.9);
+    --btn-bg: rgba(0,0,0,0.06);
+    --progress-bg: rgba(0,0,0,0.08);
+    --tooltip-bg: rgba(255,255,255,0.96);
+    --tooltip-fg: var(--text-main);
+}
+
+/* Explicit dark theme class (defaults already dark) */
+/* Explicit dark theme class (defaults already dark) */
+body.theme-dark {
+    --text-main: #ffffff;
+    --text-sec: rgba(255,255,255,0.86);
+}
+
+/* Ensure header/navbar and interactive text are pure white in dark theme */
+body.theme-dark .navbar,
+body.theme-dark .navbar *,
+body.theme-dark .nav-links,
+body.theme-dark .logo,
+body.theme-dark .logo a,
+body.theme-dark .nav-links a,
+body.theme-dark .btn,
+body.theme-dark .btn-primary,
+body.theme-dark .btn-accent,
+body.theme-dark .search-input,
+body.theme-dark input,
+body.theme-dark textarea {
+    color: var(--text-main) !important;
+}
+
+body.theme-dark .search-input::placeholder {
+    color: rgba(255,255,255,0.65) !important;
+}
+
+/* Stronger contrast for headings in dark theme */
+body.theme-dark h1, body.theme-dark h2, body.theme-dark h3, body.theme-dark h4, body.theme-dark h5 {
+    color: var(--text-main);
+}
+
+/* Broad dark-theme fixes: force text to pure white and normalize common UI backgrounds
+   This helps override library styles (fabric) that may inject light backgrounds
+   or non-white text colors. Keep exclusions for media elements. */
+body.theme-dark, .ms-Fabric.theme-dark {
+    color: var(--text-main) !important;
+}
+body.theme-dark * , .ms-Fabric.theme-dark * {
+    color: var(--text-main) !important;
+}
+
+/* Normalize backgrounds for common UI blocks in dark mode to avoid white panels */
+.ms-Fabric.theme-dark .ms-Panel,
+.ms-Fabric.theme-dark .ms-CommandBar,
+.ms-Fabric.theme-dark .ms-Dialog,
+.ms-Fabric.theme-dark .ms-Callout,
+body.theme-dark .container,
+body.theme-dark .video-card,
+body.theme-dark .auth-box,
+body.theme-dark .btn,
+body.theme-dark .btn-primary,
+body.theme-dark .btn-accent,
+body.theme-dark .search-input,
+body.theme-dark input,
+body.theme-dark textarea,
+body.theme-dark select {
+    background: var(--card-bg) !important;
+    border-color: var(--border) !important;
+}
+
+/* Keep media elements unaffected */
+body.theme-dark img, body.theme-dark svg, body.theme-dark video, body.theme-dark iframe {
+    color: initial !important;
+    background: initial !important;
+}
+
+/* Buttons and links should remain readable */
+body.theme-dark a, .ms-Fabric.theme-dark a {
+    color: var(--accent) !important;
+}
+
+/* Inputs placeholder readability */
+body.theme-dark input::placeholder, body.theme-dark textarea::placeholder {
+    color: rgba(255,255,255,0.6) !important;
+}
+
+a { text-decoration: none; color: inherit; }
+
+.navbar {
+    height: var(--nav-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background: linear-gradient(rgba(255,255,255,0.02), rgba(255,255,255,0.02));
+    backdrop-filter: blur(8px);
+    position: fixed;
+    top: 0; width: 100%; z-index: 100;
+    border-bottom: 1px solid var(--border);
+    box-sizing: border-box;
+}
+.logo { font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+.logo span { color: var(--accent); }
+.nav-links { display: flex; gap: 20px; align-items: center; }
+.btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; transition: 0.15s; }
+.btn-primary { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border); }
+.btn-primary:hover { background: rgba(0,0,0,0.06); }
+.btn-accent { background: var(--accent); color: white; }
+
+.container { margin-top: var(--nav-height); padding: 20px; max-width: 1200px; margin-left: auto; margin-right: auto; }
+
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+.video-card { background: var(--card-bg); cursor: pointer; transition: transform 0.2s; display: block; color: inherit; backdrop-filter: blur(6px); }
+.video-card:hover { transform: scale(1.02); }
+.thumbnail { width: 100%; height: 180px; background: var(--muted); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+.thumbnail-icon { font-size: 3rem; color: var(--card-bg); }
+.video-info { padding: 10px 0; display: flex; gap: 10px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--muted); display:flex; align-items:center; justify-content:center; }
+.details h3 { margin: 0 0 5px 0; font-size: 1rem; line-height: 1.2; max-height: 2.4rem; overflow: hidden; }
+.details p { margin: 0; font-size: 0.85rem; color: var(--text-sec); }
+
+.watch-container { display: flex; gap: 24px; flex-wrap: wrap; }
+.main-player { flex: 2; min-width: 600px; }
+.sidebar { flex: 1; min-width: 300px; }
+.video { width: 100%; border-radius: 12px; max-height: 70vh; background: var(--player-bg); border: 1px solid var(--border); }
+.video-meta { padding: 20px 0; border-bottom: 1px solid var(--border); }
+
+/* Video.js theming tweaks */
+.video-js .vjs-control-bar { background: rgba(0,0,0,0.12); border-top-left-radius: 0; border-top-right-radius: 0; }
+.video-js .vjs-big-play-button { background: var(--accent); border: none; color: white; border-radius: 6px; }
+.video-js .vjs-slider .vjs-play-progress { background: var(--accent); }
+.video-js .vjs-slider .vjs-load-progress { background: rgba(255,255,255,0.12); }
+.video-js .vjs-volume-bar .vjs-volume-level { background: var(--accent); }
+
+/* Suggestions overlay inside the player (Fluent-styled) */
+.vjs-suggestions {
+    position: absolute;
+    inset: 0; /* cover the player */
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6));
+    border-radius: 12px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+.vjs-suggestions-inner {
+    width: 90%;
+    max-width: 980px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+.vjs-suggestions-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.vjs-suggestions-title { font-size:1.1rem; font-weight:700; }
+.vjs-suggestions-grid { display:flex; gap:12px; flex-wrap:wrap; }
+.vjs-suggestion { display:flex; gap:10px; width:220px; background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; color:inherit; text-decoration:none; }
+.vjs-thumb { width:96px; height:60px; background:var(--muted); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+.vjs-suggestion-meta { display:flex; flex-direction:column; justify-content:center; }
+.vjs-suggestion-title { font-weight:600; font-size:0.95rem; margin-bottom:4px; }
+.vjs-suggestion-channel { color:var(--text-sec); font-size:0.82rem; }
+.vjs-suggestion:hover { background: rgba(255,255,255,0.03); transform: translateY(-2px); }
+
+
+.auth-box { max-width: 400px; margin: 100px auto; padding: 30px; background: var(--card-bg); border-radius: 8px; }
+.form-group { margin-bottom: 15px; }
+input, textarea { width: 100%; padding: 10px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 4px; box-sizing: border-box; }
+.search-input { max-width: 400px; border-radius: 20px; padding: 8px 15px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); }
+
+.footer { margin-top: 50px; text-align: center; color: var(--text-sec); padding: 20px; font-size: 0.9rem; }
+.alert { padding: 10px; margin-bottom: 20px; border-radius: 4px; background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border); }
+
+/* Footer element styling (ensure footer is centered and uses theme colors) */
+footer {
+    margin-top: 50px;
+    text-align: center;
+    color: var(--text-main);
+    padding: 18px 12px;
+    font-size: 0.95rem;
+    border-top: 1px solid var(--border);
+    background: transparent;
+}
+footer p { margin: 6px 0; }
+
+/* ViewFlow custom player styles */
+.vf-player { position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: var(--player-bg); }
+.vf-media { width: 100%; height: auto; background: transparent; display: block; }
+.vf-controls { position: absolute; left: 12px; right: 12px; bottom: 12px; display:flex; gap:10px; align-items:center; background: linear-gradient(180deg, rgba(0,0,0,0), var(--control-bg)); padding:10px; border-radius:8px; backdrop-filter: blur(6px); border: 1px solid var(--border); }
+.vf-btn { background: var(--btn-bg); color: var(--text-main); border: none; padding: 8px 10px; border-radius:8px; cursor:pointer; font-weight:700; transition: transform 0.12s ease, background 0.12s ease; }
+.vf-btn:hover { transform: translateY(-2px); background: rgba(0,0,0,0.06); }
+.vf-icon { width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:1.05rem; }
+.vf-progress { flex: 1; height:10px; background: var(--progress-bg); border-radius: 999px; cursor: pointer; position: relative; overflow: visible; }
+.vf-progress-filled { position:absolute; left:0; top:0; bottom:0; width:0%; background: linear-gradient(90deg, var(--accent), #00b4ff); border-radius: 999px; box-shadow: 0 4px 14px rgba(0,120,212,0.12); }
+.vf-progress-tooltip { position: absolute; top: -30px; padding: 4px 8px; background: var(--tooltip-bg); color: var(--tooltip-fg); font-size: 0.8rem; border-radius: 4px; transform: translateX(-50%); pointer-events: none; white-space: nowrap; }
+.vf-time { color: var(--text-sec); font-size: 0.9rem; margin-left:8px; white-space: nowrap; }
+.vf-volume { width:90px; }
+
+/* Ensure suggestions overlay sits above controls */
+.vjs-suggestions { z-index: 30; }
+.vf-player { z-index: 2; }
+
+/* Big play overlay centered */
+.vf-bigplay { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background: rgba(0,0,0,0.45); border-radius:50%; width:96px; height:96px; display:flex; align-items:center; justify-content:center; font-size:34px; color: var(--text-main); cursor:pointer; transition: transform 0.12s ease, opacity 0.12s ease; z-index: 20; }
+.vf-bigplay.hidden { opacity: 0; transform: translate(-50%,-50%) scale(0.9); pointer-events: none; }
+
+/* Responsive tweaks for small screens */
+@media (max-width: 700px) {
+    .vf-controls { left: 8px; right: 8px; bottom: 8px; padding:8px; gap:8px; }
+    .vf-icon { width:36px; height:36px; }
+    .vf-bigplay { width:72px; height:72px; font-size:26px; }
+}

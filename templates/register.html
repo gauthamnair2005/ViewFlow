@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth-box">
+    <h2 style="text-align:center;">Create Account</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="username" required>
+        </div>
+        <div class="form-group">
+            <label>Display Name (optional)</label>
+            <input type="text" name="display_name" placeholder="Display name">
+        </div>
+        <div class="form-group">
+            <label>Age (optional)</label>
+            <input type="number" name="age" min="0" max="150">
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-accent" style="width:100%;">Register</button>
+    </form>
+    <p style="text-align:center; margin-top:15px;">
+        Already have an account? <a href="{{ url_for('login') }}" style="color:var(--accent);">Login</a>
+    </p>
+</div>
+{% endblock %}
