@@ -586,3 +586,223 @@ input[type="range"]::-moz-range-thumb:hover {
     border-radius: 999px;
     transition: width 0.3s ease;
 }
+
+/* Theatre Mode */
+body.theatre-mode .watch-container {
+    max-width: 100%;
+    padding: 0;
+    flex-direction: column;
+}
+
+body.theatre-mode .main-player {
+    flex: 1;
+    max-width: 100%;
+    min-width: 100%;
+    margin: 0;
+}
+
+body.theatre-mode .sidebar {
+    display: none;
+}
+
+body.theatre-mode .vf-player {
+    border-radius: 0;
+    width: 100%;
+}
+
+body.theatre-mode .vf-player video,
+body.theatre-mode .vf-player iframe {
+    width: 100%;
+    height: auto;
+    min-height: 75vh;
+}
+
+body.theatre-mode .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+body.theatre-mode .video-meta {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Fullscreen Mode Fix */
+.vf-player:fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    background: #000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.vf-player:fullscreen .vf-media {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 100vw;
+    max-height: 100vh;
+    width: auto;
+    height: auto;
+}
+
+.vf-player:fullscreen video,
+.vf-player:fullscreen iframe {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    object-fit: contain !important;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.vf-player:-webkit-full-screen {
+    width: 100vw !important;
+    height: 100vh !important;
+    background: #000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.vf-player:-webkit-full-screen .vf-media {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 100vw;
+    max-height: 100vh;
+    width: auto;
+    height: auto;
+}
+
+.vf-player:-webkit-full-screen video,
+.vf-player:-webkit-full-screen iframe {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    object-fit: contain !important;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.vf-player:-moz-full-screen {
+    width: 100vw !important;
+    height: 100vh !important;
+    background: #000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.vf-player:-moz-full-screen .vf-media {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 100vw;
+    max-height: 100vh;
+    width: auto;
+    height: auto;
+}
+
+.vf-player:-moz-full-screen video,
+.vf-player:-moz-full-screen iframe {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    object-fit: contain !important;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* MS Edge fullscreen */
+.vf-player:-ms-fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    background: #000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.vf-player:-ms-fullscreen video,
+.vf-player:-ms-fullscreen iframe {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    object-fit: contain !important;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Fullscreen controls and bigplay positioning */
+.vf-player:fullscreen .vf-controls,
+.vf-player:-webkit-full-screen .vf-controls,
+.vf-player:-moz-full-screen .vf-controls,
+.vf-player:-ms-fullscreen .vf-controls {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    z-index: 50;
+}
+
+.vf-player:fullscreen .vf-bigplay,
+.vf-player:-webkit-full-screen .vf-bigplay,
+.vf-player:-moz-full-screen .vf-bigplay,
+.vf-player:-ms-fullscreen .vf-bigplay {
+    position: fixed;
+    z-index: 40;
+}
+
+/* Auto-hide controls */
+.vf-player .vf-controls {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.vf-player:hover .vf-controls,
+.vf-player.show-controls .vf-controls {
+    opacity: 1;
+}
+
+/* Big play button: only show when paused/ended or on hover */
+.vf-player .vf-bigplay {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.vf-player:hover .vf-bigplay:not(.hidden),
+.vf-player.show-controls .vf-bigplay:not(.hidden),
+.vf-player.paused .vf-bigplay:not(.hidden),
+.vf-player .vf-bigplay.replay-btn {
+    opacity: 1;
+}
+
+.vf-player .vf-bigplay.hidden {
+    opacity: 0 !important;
+    pointer-events: none;
+}

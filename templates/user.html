@@ -1,7 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
 <div style="display:flex; gap:20px; align-items:center; margin-bottom:20px;">
-    <div class="avatar" style="width:72px; height:72px; font-size:2rem;">{{ channel.username[0].upper() }}</div>
+    {% if channel.profile_pic %}
+        <img src="{{ url_for('uploaded_file', filename=channel.profile_pic) }}" alt="{{ channel.username }}" class="avatar" style="width:72px; height:72px; object-fit:cover;">
+    {% else %}
+        <div class="avatar" style="width:72px; height:72px; font-size:2rem;">{{ channel.username[0].upper() }}</div>
+    {% endif %}
     <div>
         <h2 style="margin:0;"><a href="{{ url_for('user_profile', username=channel.username) }}" style="color:inherit;">{{ channel.display_name or channel.username }}</a></h2>
         <p style="margin:4px 0 0 0; color:var(--text-sec);"><span id="subs-count">{{ subs_count }}</span> subscribers • {{ channel.location or 'Unknown region' }}</p>
@@ -31,7 +35,11 @@
                 </div>
             </a>
             <div class="video-info">
-                <div class="avatar">{{ channel.username[0].upper() }}</div>
+                {% if channel.profile_pic %}
+                    <img src="{{ url_for('uploaded_file', filename=channel.profile_pic) }}" alt="{{ channel.username }}" class="avatar" style="object-fit:cover;">
+                {% else %}
+                    <div class="avatar">{{ channel.username[0].upper() }}</div>
+                {% endif %}
                     <div class="details">
                         <h3>{{ video.title }}</h3>
                         <p style="margin:4px 0 0 0; color:var(--text-sec);">{{ video.views }} views • {{ video.upload_date|format_date }}</p>

@@ -7,6 +7,8 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from jinja2 import DictLoader
+import cv2
+import random
 
 __version__ = '0.3.1'
 
@@ -30,7 +32,8 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv'}
+ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv'}
+ALLOWED_IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
 # Use filesystem templates from the `templates/` directory so edits there are reflected.
 # If you prefer the in-memory templates for tests, uncomment the DictLoader block below.
 # app.jinja_loader = DictLoader({
@@ -95,8 +98,51 @@ def load_user(user_id):
 # UTILITIES
 # ==========================================
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+def allowed_file(filename, file_type='video'):
+    """Check if file extension is allowed.
+    file_type can be 'video' or 'image'
+    """
+    if not filename or '.' not in filename:
+        return False
+    ext = filename.rsplit('.', 1)[1].lower()
+    if file_type == 'video':
+        return ext in ALLOWED_VIDEO_EXTENSIONS
+    elif file_type == 'image':
+        return ext in ALLOWED_IMAGE_EXTENSIONS
+    return False
+
+def generate_thumbnail(video_path, output_path):
+    """Generate a thumbnail from a random frame in the video"""
+    try:
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            return None
+        
+        # Get total frames
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        if total_frames <= 0:
+            cap.release()
+            return None
+        
+        # Pick a random frame (avoid first and last 10%)
+        start_frame = int(total_frames * 0.1)
+        end_frame = int(total_frames * 0.9)
+        random_frame = random.randint(start_frame, end_frame) if end_frame > start_frame else total_frames // 2
+        
+        # Set frame position
+        cap.set(cv2.CAP_PROP_POS_FRAMES, random_frame)
+        ret, frame = cap.read()
+        cap.release()
+        
+        if ret:
+            # Resize to standard thumbnail size (320x180)
+            thumbnail = cv2.resize(frame, (320, 180))
+            cv2.imwrite(output_path, thumbnail)
+            return True
+        return None
+    except Exception as e:
+        print(f"Error generating thumbnail: {e}")
+        return None
 
 def format_date(date):
     if not date:
@@ -123,6 +169,7 @@ def init_db():
     with app.app_context():
         try:
             db.create_all()
+            print("Database initialized.")
         except Exception:
             # continue even if create_all fails
             pass
@@ -139,11 +186,13 @@ def init_db():
                 if 'is_public' not in video_cols:
                     try:
                         conn.execute(text("ALTER TABLE video ADD COLUMN is_public BOOLEAN DEFAULT 1"))
+                        conn.commit()
                     except Exception:
                         pass
                 if 'thumbnail' not in video_cols:
                     try:
                         conn.execute(text("ALTER TABLE video ADD COLUMN thumbnail VARCHAR(200)"))
+                        conn.commit()
                     except Exception:
                         pass
 
@@ -156,21 +205,43 @@ def init_db():
                 if 'display_name' not in user_cols:
                     try:
                         conn.execute(text("ALTER TABLE user ADD COLUMN display_name VARCHAR(150)"))
+                        conn.commit()
                     except Exception:
                         pass
                 if 'location' not in user_cols:
                     try:
-                        conn.execute(text("ALTER TABLE user ADD COLUMN location VARCHAR(150)"))
+                        conn.execute(text("ALTER TABLE user ADD COLUMN location VARCHAR(200)"))
+                        conn.commit()
                     except Exception:
                         pass
                 if 'age' not in user_cols:
                     try:
                         conn.execute(text("ALTER TABLE user ADD COLUMN age INTEGER"))
+                        conn.commit()
                     except Exception:
                         pass
                 if 'date_joined' not in user_cols:
                     try:
                         conn.execute(text("ALTER TABLE user ADD COLUMN date_joined DATETIME"))
+                        conn.commit()
+                    except Exception:
+                        pass
+                if 'gender' not in user_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE user ADD COLUMN gender VARCHAR(50)"))
+                        conn.commit()
+                    except Exception:
+                        pass
+                if 'profile_pic' not in user_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE user ADD COLUMN profile_pic VARCHAR(300)"))
+                        conn.commit()
+                    except Exception:
+                        pass
+                if 'bio' not in user_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE user ADD COLUMN bio TEXT"))
+                        conn.commit()
                     except Exception:
                         pass
         except Exception:
@@ -196,6 +267,26 @@ def home():
         videos = Video.query.filter_by(is_public=True).order_by(Video.upload_date.desc()).all()
     return render_template('home.html', title="Home", videos=videos)
 
+
+@app.route('/search')
+def search():
+    query = request.args.get('q', '').strip()
+    if not query:
+        return redirect(url_for('home'))
+    
+    # Search in video title, description, and uploader name
+    search_pattern = f"%{query}%"
+    videos = Video.query.join(Video.uploader).filter(
+        (Video.is_public == True) &
+        (
+            (Video.title.ilike(search_pattern)) |
+            (Video.description.ilike(search_pattern)) |
+            (User.username.ilike(search_pattern)) |
+            (User.display_name.ilike(search_pattern))
+        )
+    ).order_by(Video.upload_date.desc()).all()
+    
+    return render_template('search.html', title=f"Search: {query}", query=query, videos=videos)
 
 @app.route('/test-async')
 @login_required
@@ -238,17 +329,18 @@ def register():
         profile_pic_path = None
         if 'profile_pic' in request.files:
             file = request.files['profile_pic']
-            if file and file.filename and allowed_file(file.filename):
+            if file and file.filename and allowed_file(file.filename, 'image'):
                 filename = secure_filename(file.filename)
                 timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                 save_name = f"profile_{timestamp}_{filename}"
                 
-                profiles_dir = os.path.join(UPLOAD_FOLDER, 'profiles')
-                os.makedirs(profiles_dir, exist_ok=True)
-                
-                save_path = os.path.join(profiles_dir, save_name)
+                save_path = os.path.join(UPLOAD_FOLDER, save_name)
                 file.save(save_path)
-                profile_pic_path = os.path.join('profiles', save_name)
+                profile_pic_path = save_name
+                print(f"[REGISTER] Saved profile picture: {save_name}")
+            else:
+                if file.filename:
+                    print(f"[REGISTER] Profile picture rejected: {file.filename} (invalid format)")
             
         new_user = User(
             username=username,
@@ -290,16 +382,23 @@ def upload():
             flash('No selected file')
             return redirect(request.url)
             
-        if file and allowed_file(file.filename):
+        if file and allowed_file(file.filename, 'video'):
             filename = secure_filename(file.filename)
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             save_name = f"{timestamp}_{filename}"
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], save_name))
+            video_path = os.path.join(app.config['UPLOAD_FOLDER'], save_name)
+            file.save(video_path)
+            
+            # Generate thumbnail
+            thumbnail_name = f"{timestamp}_thumb.jpg"
+            thumbnail_path = os.path.join(app.config['UPLOAD_FOLDER'], thumbnail_name)
+            generate_thumbnail(video_path, thumbnail_path)
             
             new_video = Video(
                 title=title,
                 description=description,
                 filename=save_name,
+                thumbnail=thumbnail_name if os.path.exists(thumbnail_path) else None,
                 user_id=current_user.id
             )
             db.session.add(new_video)
@@ -318,10 +417,18 @@ def watch(video_id):
 
     try:
         # increment views for non-owner viewers
-        if not (current_user.is_authenticated and current_user.id == video.user_id):
-            video.views = (video.views or 0) + 1
+        is_owner = current_user.is_authenticated and current_user.id == video.user_id
+        print(f"[VIEW DEBUG] Video: {video.title}, User: {current_user.username if current_user.is_authenticated else 'Anonymous'}, Owner: {is_owner}, Current Views: {video.views}")
+        
+        if not is_owner:
+            old_views = video.views or 0
+            video.views = old_views + 1
             db.session.commit()
-    except Exception:
+            print(f"[VIEW DEBUG] Views incremented: {old_views} -> {video.views}")
+        else:
+            print(f"[VIEW DEBUG] Owner viewing - no increment")
+    except Exception as e:
+        print(f"[VIEW DEBUG] Error: {e}")
         db.session.rollback()
 
     # recommended: only show public videos or owner's own videos

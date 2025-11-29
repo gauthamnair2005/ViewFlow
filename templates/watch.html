@@ -20,7 +20,8 @@
                     <button id="vf-mute" class="vf-btn vf-icon">🔊</button>
                     <input id="vf-volume" class="vf-volume" type="range" min="0" max="1" step="0.05" value="1" />
                     <button id="vf-speed" class="vf-btn">1x</button>
-                    <button id="vf-fullscreen" class="vf-btn vf-icon">⤢</button>
+                    <button id="vf-theatre" class="vf-btn vf-icon" title="Theatre mode">▭</button>
+                    <button id="vf-fullscreen" class="vf-btn vf-icon" title="Fullscreen">⤢</button>
                 </div>
 
                 <!-- suggestions overlay (kept for compatibility) -->
@@ -74,7 +75,11 @@
         </div>
         <div style="margin-top: 20px; padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);">
             <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 10px;">
-                <div class="avatar" style="width: 40px; height: 40px;">{{ video.uploader.username[0].upper() }}</div>
+                {% if video.uploader.profile_pic %}
+                    <img src="{{ url_for('uploaded_file', filename=video.uploader.profile_pic) }}" alt="{{ video.uploader.username }}" class="avatar" style="width: 40px; height: 40px; object-fit: cover;">
+                {% else %}
+                    <div class="avatar" style="width: 40px; height: 40px;">{{ video.uploader.username[0].upper() }}</div>
+                {% endif %}
                             <a href="{{ url_for('user_profile', username=video.uploader.username) }}" style="font-weight:bold; color:inherit; margin-left:8px;">{{ video.uploader.display_name or video.uploader.username }}</a>
                 <div style="margin-left:10px">
                     <a href="{{ url_for('user_profile', username=video.uploader.username) }}" class="btn btn-primary">View Channel</a>

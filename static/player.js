@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var timeDisplay = document.getElementById('vf-time');
   var volumeEl = document.getElementById('vf-volume');
   var fullscreenBtn = document.getElementById('vf-fullscreen');
+  var theatreBtn = document.getElementById('vf-theatre');
   var muteBtn = document.getElementById('vf-mute');
   var speedBtn = document.getElementById('vf-speed');
   var bigPlay = document.getElementById('vf-bigplay');
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var ytPlayer = null;
   var ytReady = false;
   var progressTimer = null;
+  var controlsHideTimer = null;
 
   function formatTime(seconds) {
     if (!isFinite(seconds) || seconds === undefined) return '0:00';
@@ -37,8 +39,17 @@ document.addEventListener('DOMContentLoaded', function () {
   function hideOverlay() { if (overlay) overlay.style.display = 'none'; }
   function showBigPlay() { if (!bigPlay) return; bigPlay.classList.remove('hidden'); }
   function hideBigPlay() { if (!bigPlay) return; bigPlay.classList.add('hidden'); }
-  function showReplayBtn() { if (!bigPlay) return; bigPlay.classList.remove('hidden'); bigPlay.innerHTML = '<span style="font-size: 48px;">🔄</span>'; }
-  function hideReplayBtn() { if (!bigPlay) return; bigPlay.innerHTML = '<span style="font-size: 34px;">▶</span>'; }
+  function showReplayBtn() { 
+    if (!bigPlay) return; 
+    bigPlay.classList.remove('hidden'); 
+    bigPlay.classList.add('replay-btn');
+    bigPlay.innerHTML = '<span style="font-size: 48px;">🔄</span>'; 
+  }
+  function hideReplayBtn() { 
+    if (!bigPlay) return; 
+    bigPlay.classList.remove('replay-btn');
+    bigPlay.innerHTML = '<span style="font-size: 34px;">▶</span>'; 
+  }
 
   // HTML5 video flow
   function initHTML5(src) {
@@ -64,9 +75,26 @@ document.addEventListener('DOMContentLoaded', function () {
       updateTime();
     });
 
-    html5video.addEventListener('play', function () { hideOverlay(); hideBigPlay(); playBtn.textContent = '❚❚'; hideReplayBtn(); startProgressTimer(); });
-    html5video.addEventListener('pause', function () { playBtn.textContent = '▶'; stopProgressTimer(); });
-    html5video.addEventListener('ended', function () { showOverlay(); showReplayBtn(); playBtn.textContent = '🔄'; stopProgressTimer(); });
+    html5video.addEventListener('play', function () { 
+      hideOverlay(); 
+      hideBigPlay(); 
+      playBtn.textContent = '❚❚'; 
+      hideReplayBtn(); 
+      startProgressTimer(); 
+      container.classList.remove('paused');
+    });
+    html5video.addEventListener('pause', function () { 
+      playBtn.textContent = '▶'; 
+      stopProgressTimer(); 
+      container.classList.add('paused');
+    });
+    html5video.addEventListener('ended', function () { 
+      showOverlay(); 
+      showReplayBtn(); 
+      playBtn.textContent = '🔄'; 
+      stopProgressTimer(); 
+      container.classList.add('paused');
+    });
     playBtn.addEventListener('click', function () { 
       if (html5video.ended) {
         html5video.currentTime = 0;
@@ -264,7 +292,15 @@ document.addEventListener('DOMContentLoaded', function () {
     var tag = document.activeElement && document.activeElement.tagName.toLowerCase();
     if (tag === 'input' || tag === 'textarea') return;
     if (e.code === 'Space' || e.key === 'k') { e.preventDefault(); togglePlay(); }
-    if (e.key === 'f') { if (document.fullscreenElement) document.exitFullscreen(); else container.requestFullscreen(); }
+    if (e.key === 'f') { 
+      e.preventDefault();
+      if (document.fullscreenElement) document.exitFullscreen(); 
+      else container.requestFullscreen(); 
+    }
+    if (e.key === 't') { 
+      e.preventDefault();
+      if (theatreBtn) theatreBtn.click(); 
+    }
     if (e.key === 'm') { toggleMute(); }
     if (e.key === 'ArrowRight') { if (html5video) html5video.currentTime += 5; else if (ytPlayer && ytReady) ytPlayer.seekTo(ytPlayer.getCurrentTime() + 5, true); }
     if (e.key === 'ArrowLeft') { if (html5video) html5video.currentTime -= 5; else if (ytPlayer && ytReady) ytPlayer.seekTo(ytPlayer.getCurrentTime() - 5, true); }
@@ -278,10 +314,41 @@ document.addEventListener('DOMContentLoaded', function () {
   // initial mute icon / speed label
   updateMuteIcon(); if (speedBtn) speedBtn.textContent = '1x';
 
+  // theatre mode
+  var isTheatreMode = false;
+  if (theatreBtn) {
+    theatreBtn.addEventListener('click', function () {
+      isTheatreMode = !isTheatreMode;
+      if (isTheatreMode) {
+        document.body.classList.add('theatre-mode');
+        theatreBtn.textContent = '▬';
+        theatreBtn.title = 'Default mode';
+      } else {
+        document.body.classList.remove('theatre-mode');
+        theatreBtn.textContent = '▭';
+        theatreBtn.title = 'Theatre mode';
+      }
+    });
+  }
+
   // fullscreen
   fullscreenBtn.addEventListener('click', function () {
     if (!container) return;
-    if (document.fullscreenElement) document.exitFullscreen(); else container.requestFullscreen();
+    if (document.fullscreenElement) document.exitFullscreen(); 
+    else container.requestFullscreen().catch(function(err) {
+      console.log('Fullscreen error:', err);
+    });
+  });
+
+  // update fullscreen icon on change
+  document.addEventListener('fullscreenchange', function() {
+    if (document.fullscreenElement) {
+      fullscreenBtn.textContent = '⤓';
+      fullscreenBtn.title = 'Exit fullscreen';
+    } else {
+      fullscreenBtn.textContent = '⤢';
+      fullscreenBtn.title = 'Fullscreen';
+    }
   });
 
   // suggestions overlay handling
@@ -315,5 +382,42 @@ document.addEventListener('DOMContentLoaded', function () {
   } else {
     initHTML5(videoSrc);
   }
+
+  // Auto-hide controls functionality
+  function showControls() {
+    container.classList.add('show-controls');
+    if (controlsHideTimer) clearTimeout(controlsHideTimer);
+    controlsHideTimer = setTimeout(function() {
+      if (!container.matches(':hover')) {
+        container.classList.remove('show-controls');
+      }
+    }, 3000);
+  }
+
+  function hideControls() {
+    if (controlsHideTimer) clearTimeout(controlsHideTimer);
+    container.classList.remove('show-controls');
+  }
+
+  container.addEventListener('mousemove', function() {
+    showControls();
+  });
+
+  container.addEventListener('mouseleave', function() {
+    hideControls();
+  });
+
+  // Show controls when video is paused
+  if (html5video) {
+    html5video.addEventListener('pause', function() {
+      showControls();
+    });
+    html5video.addEventListener('play', function() {
+      showControls();
+    });
+  }
+
+  // Initial show
+  showControls();
 
 });

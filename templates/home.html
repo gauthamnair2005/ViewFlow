@@ -18,7 +18,11 @@
                     {% endif %}
                 </div>
                 <div class="video-info">
-                    <div class="avatar">{{ (video.uploader.username or 'U')[0].upper() }}</div>
+                    {% if video.uploader.profile_pic %}
+                        <img src="{{ url_for('uploaded_file', filename=video.uploader.profile_pic) }}" alt="{{ video.uploader.username }}" class="avatar" style="object-fit:cover;">
+                    {% else %}
+                        <div class="avatar">{{ (video.uploader.username or 'U')[0].upper() }}</div>
+                    {% endif %}
                     <div class="details">
                         <h3>{{ video.title }}</h3>
                         <p style="margin:4px 0 0 0; color:var(--text-sec);">
