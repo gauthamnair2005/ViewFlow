@@ -195,7 +195,109 @@ a { text-decoration: none; color: inherit; }
 
 .auth-box { max-width: 400px; margin: 100px auto; padding: 30px; background: var(--card-bg); border-radius: 8px; }
 .form-group { margin-bottom: 15px; }
-input, textarea { width: 100%; padding: 10px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 4px; box-sizing: border-box; }
+/* Global Form Element Styles */
+input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--btn-bg);
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+}
+
+input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):hover,
+textarea:hover,
+select:hover {
+    border-color: rgba(0, 120, 212, 0.5);
+}
+
+/* Select Dropdown Styling */
+select {
+    cursor: pointer;
+    /* Keep native appearance for proper dropdown functionality */
+    background-color: var(--card-bg);
+    padding-right: 30px;
+}
+
+select option {
+    background: var(--bg-color);
+    color: var(--text-main);
+    padding: 8px;
+}
+
+/* File Input Styling */
+input[type="file"] {
+    padding: 8px;
+    cursor: pointer;
+    border: 2px dashed var(--border);
+    background: var(--card-bg);
+}
+
+input[type="file"]:hover {
+    border-color: var(--accent);
+    background: var(--btn-bg);
+}
+
+input[type="file"]::file-selector-button {
+    background: var(--accent);
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    margin-right: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+input[type="file"]::file-selector-button:hover {
+    background: #0066cc;
+    transform: translateY(-1px);
+}
+
+/* Textarea Specific */
+textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+/* Checkbox and Radio Styling */
+input[type="checkbox"],
+input[type="radio"] {
+    width: auto;
+    height: 18px;
+    width: 18px;
+    cursor: pointer;
+    accent-color: var(--accent);
+}
+
+/* Number Input Arrows */
+input[type="number"] {
+    appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
+    cursor: pointer;
+}
 .search-input { max-width: 400px; border-radius: 20px; padding: 8px 15px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); }
 
 .footer { margin-top: 50px; text-align: center; color: var(--text-sec); padding: 20px; font-size: 0.9rem; }
@@ -248,18 +350,67 @@ footer p { margin: 6px 0; }
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 8px;
-    color: var(--text);
+    color: var(--text-main);
     font-size: 1rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.auth-box select:hover {
+    border-color: var(--accent);
+    background: var(--btn-bg);
+}
+
+.auth-box select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
 }
 
 .auth-box select option {
-    background: var(--card-bg);
-    color: var(--text);
+    background: var(--bg-color);
+    color: var(--text-main);
+    padding: 8px;
 }
 
 .auth-box input[type="file"] {
     padding: 8px;
     font-size: 0.9rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.auth-box input[type="file"]:hover {
+    border-color: var(--accent);
+    background: var(--btn-bg);
+}
+
+.auth-box input[type="file"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+}
+
+.auth-box input[type="file"]::file-selector-button {
+    background: var(--accent);
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    margin-right: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.auth-box input[type="file"]::file-selector-button:hover {
+    background: #0066cc;
+    transform: translateY(-1px);
 }
 
 .auth-box small {
@@ -282,4 +433,155 @@ footer p { margin: 6px 0; }
     border-radius: 50%;
     object-fit: cover;
     border: 4px solid var(--accent);
+}
+
+/* Enhanced Form Feedback and Validation */
+input:invalid:not(:placeholder-shown),
+textarea:invalid:not(:placeholder-shown),
+select:invalid:not(:placeholder-shown) {
+    border-color: #dc3545;
+}
+
+input:valid:not(:placeholder-shown),
+textarea:valid:not(:placeholder-shown) {
+    border-color: #28a745;
+}
+
+/* Disabled State */
+input:disabled,
+textarea:disabled,
+select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--muted);
+}
+
+/* Form Labels */
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    margin-bottom: 8px;
+}
+
+/* File Upload Custom Styling */
+.file-upload-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.file-upload-wrapper input[type="file"] {
+    border: 2px dashed var(--border);
+    background: var(--card-bg);
+    padding: 30px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.file-upload-wrapper input[type="file"]:hover {
+    border-color: var(--accent);
+    background: var(--btn-bg);
+}
+
+.file-upload-wrapper input[type="file"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+}
+
+/* Select Dropdown Enhanced for Light Theme */
+body.theme-light select {
+    background-color: var(--card-bg);
+}
+
+/* Placeholder Styling */
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-sec);
+    opacity: 0.7;
+}
+
+/* Range Input */
+input[type="range"] {
+    height: 6px;
+    background: var(--progress-bg);
+    border-radius: 999px;
+    outline: none;
+    appearance: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+/* Override form styles for range inputs */
+input[type="range"]:hover,
+input[type="range"]:focus {
+    border: none;
+    box-shadow: none;
+    background: var(--progress-bg);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.2s ease;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.2);
+}
+
+/* Search Input Enhanced */
+.search-input {
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    max-width: 500px;
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+}
+
+/* Upload Progress (for future implementation) */
+.upload-progress {
+    width: 100%;
+    height: 8px;
+    background: var(--progress-bg);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.upload-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #00b4ff);
+    border-radius: 999px;
+    transition: width 0.3s ease;
 }
