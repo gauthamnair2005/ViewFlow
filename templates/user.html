@@ -4,11 +4,11 @@
     <div class="avatar" style="width:72px; height:72px; font-size:2rem;">{{ channel.username[0].upper() }}</div>
     <div>
         <h2 style="margin:0;"><a href="{{ url_for('user_profile', username=channel.username) }}" style="color:inherit;">{{ channel.display_name or channel.username }}</a></h2>
-        <p style="margin:4px 0 0 0; color:var(--text-sec);">{{ subs_count }} subscribers • {{ channel.location or 'Unknown region' }}</p>
+        <p style="margin:4px 0 0 0; color:var(--text-sec);"><span id="subs-count">{{ subs_count }}</span> subscribers • {{ channel.location or 'Unknown region' }}</p>
         <p style="margin:2px 0 0 0; color:var(--text-sec); font-size:0.9rem;">Joined {{ channel.date_joined|format_date }}</p>
         {% if current_user.is_authenticated and current_user.id != channel.id %}
-        <form method="POST" action="{{ url_for('subscribe', channel_id=channel.id) }}" style="margin-top:8px;">
-            <button class="btn btn-accent">{% if is_subscribed %}Unsubscribe{% else %}Subscribe{% endif %}</button>
+        <form method="POST" action="{{ url_for('subscribe', channel_id=channel.id) }}" class="js-async-form" data-action="subscribe" style="margin-top:8px;">
+            <button type="submit" class="btn js-subscribe-btn {% if is_subscribed %}btn-primary{% else %}btn-accent{% endif %}">{% if is_subscribed %}Subscribed{% else %}Subscribe{% endif %}</button>
         </form>
         {% endif %}
     </div>
