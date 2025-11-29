@@ -10,7 +10,7 @@ from jinja2 import DictLoader
 import cv2
 import random
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
 # ==========================================
 # CONFIGURATION
@@ -429,14 +429,13 @@ def watch(video_id):
         is_owner = current_user.is_authenticated and current_user.id == video.user_id
         print(f"[VIEW DEBUG] Video: {video.title}, User: {current_user.username if current_user.is_authenticated else 'Anonymous'}, Owner: {is_owner}, Current Views: {video.views}")
         
-        # Allow owner to increment views for testing purposes
-        # if not is_owner:
-        old_views = video.views or 0
-        video.views = old_views + 1
-        db.session.commit()
-        print(f"[VIEW DEBUG] Views incremented: {old_views} -> {video.views}")
-        # else:
-        #     print(f"[VIEW DEBUG] Owner viewing - no increment")
+        if not is_owner:
+            old_views = video.views or 0
+            video.views = old_views + 1
+            db.session.commit()
+            print(f"[VIEW DEBUG] Views incremented: {old_views} -> {video.views}")
+        else:
+            print(f"[VIEW DEBUG] Owner viewing - no increment")
     except Exception as e:
         print(f"[VIEW DEBUG] Error: {e}")
         db.session.rollback()

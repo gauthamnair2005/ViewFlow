@@ -43,10 +43,10 @@ def watch(video_id):
             abort(404)
 
     try:
-        # increment views for everyone (including owner for testing)
-        # if not (current_user.is_authenticated and current_user.id == video.user_id):
-        video.views = (video.views or 0) + 1
-        db.session.commit()
+        # increment views for non-owner viewers
+        if not (current_user.is_authenticated and current_user.id == video.user_id):
+            video.views = (video.views or 0) + 1
+            db.session.commit()
     except Exception:
         db.session.rollback()
     
