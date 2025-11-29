@@ -4,7 +4,7 @@
     <div class="main-player">
         <div style="position:relative">
             <!-- ViewFlow Custom Player -->
-            <div id="vf-player" class="vf-player" data-video-src="{{ url_for('uploaded_file', filename=video.filename) }}" data-youtube="{{ video.youtube_url|default('') }}" {% if video.thumbnail %}style="background-image: url('{{ url_for('uploaded_file', filename=video.thumbnail) }}'); background-size:cover; background-position:center;"{% endif %}>
+            <div id="vf-player" class="vf-player" data-video-src="{{ url_for('main.uploaded_file', filename=video.filename) }}" data-youtube="{{ video.youtube_url|default('') }}" {% if video.thumbnail %}style="background-image: url('{{ url_for('main.uploaded_file', filename=video.thumbnail) }}'); background-size:cover; background-position:center;"{% endif %}>
                 <div class="vf-media" id="vf-media"></div>
 
                 <!-- Big central play overlay -->
@@ -35,8 +35,8 @@
                         </div>
                         <div class="vjs-suggestions-grid">
                             {% for rec in recommended %}
-                            <a class="vjs-suggestion" href="{{ url_for('watch', video_id=rec.id) }}" data-src="{{ url_for('uploaded_file', filename=rec.filename) }}">
-                                <div class="vjs-thumb">{% if rec.thumbnail %}<img src="{{ url_for('uploaded_file', filename=rec.thumbnail) }}" alt="{{ rec.title }}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">{% else %}▶{% endif %}</div>
+                            <a class="vjs-suggestion" href="{{ url_for('main.watch', video_id=rec.id) }}" data-src="{{ url_for('main.uploaded_file', filename=rec.filename) }}">
+                                <div class="vjs-thumb">{% if rec.thumbnail %}<img src="{{ url_for('main.uploaded_file', filename=rec.thumbnail) }}" alt="{{ rec.title }}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">{% else %}▶{% endif %}</div>
                                 <div class="vjs-suggestion-meta">
                                     <div class="vjs-suggestion-title">{{ rec.title }}</div>
                                     <div class="vjs-suggestion-channel">{{ rec.uploader.display_name or rec.uploader.username }}</div>
@@ -55,11 +55,11 @@
                 <div>
                     <p style="color: var(--text-sec); margin:0">{{ video.views }} views • {{ video.upload_date|format_date }}</p>
                     <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
-                        <form method="POST" action="{{ url_for('react_video', video_id=video.id) }}" style="display:inline" class="js-async-form" data-action="like">
+                        <form method="POST" action="{{ url_for('main.react_video', video_id=video.id) }}" style="display:inline" class="js-async-form" data-action="like">
                             <input type="hidden" name="action" value="like" />
                             <button type="submit" class="btn js-like-btn {% if is_liked %}btn-accent{% else %}btn-primary{% endif %}">👍 <span id="likes-count">{{ likes }}</span></button>
                         </form>
-                        <form method="POST" action="{{ url_for('react_video', video_id=video.id) }}" style="display:inline" class="js-async-form" data-action="dislike">
+                        <form method="POST" action="{{ url_for('main.react_video', video_id=video.id) }}" style="display:inline" class="js-async-form" data-action="dislike">
                             <input type="hidden" name="action" value="dislike" />
                             <button type="submit" class="btn js-dislike-btn {% if is_disliked %}btn-accent{% else %}btn-primary{% endif %}">👎 <span id="dislikes-count">{{ dislikes }}</span></button>
                         </form>
@@ -67,7 +67,7 @@
                     </div>
                 </div>
                 <div>
-                    <form method="POST" action="{{ url_for('subscribe', channel_id=video.uploader.id) }}" class="js-async-form" data-action="subscribe">
+                    <form method="POST" action="{{ url_for('main.subscribe', channel_id=video.uploader.id) }}" class="js-async-form" data-action="subscribe">
                         <button type="submit" class="btn js-subscribe-btn {% if is_subscribed %}btn-primary{% else %}btn-accent{% endif %}">{% if is_subscribed %}Subscribed{% else %}Subscribe{% endif %}</button>
                     </form>
                 </div>
@@ -76,25 +76,25 @@
         <div style="margin-top: 20px; padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);">
             <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 10px;">
                 {% if video.uploader.profile_pic %}
-                    <img src="{{ url_for('uploaded_file', filename=video.uploader.profile_pic) }}" alt="{{ video.uploader.username }}" class="avatar" style="width: 40px; height: 40px; object-fit: cover;">
+                    <img src="{{ url_for('main.uploaded_file', filename=video.uploader.profile_pic) }}" alt="{{ video.uploader.username }}" class="avatar" style="width: 40px; height: 40px; object-fit: cover;">
                 {% else %}
                     <div class="avatar" style="width: 40px; height: 40px;">{{ video.uploader.username[0].upper() }}</div>
                 {% endif %}
-                            <a href="{{ url_for('user_profile', username=video.uploader.username) }}" style="font-weight:bold; color:inherit; margin-left:8px;">{{ video.uploader.display_name or video.uploader.username }}</a>
+                            <a href="{{ url_for('main.user_profile', username=video.uploader.username) }}" style="font-weight:bold; color:inherit; margin-left:8px;">{{ video.uploader.display_name or video.uploader.username }}</a>
                 <div style="margin-left:10px">
-                    <a href="{{ url_for('user_profile', username=video.uploader.username) }}" class="btn btn-primary">View Channel</a>
+                    <a href="{{ url_for('main.user_profile', username=video.uploader.username) }}" class="btn btn-primary">View Channel</a>
                 </div>
                 <div style="margin-left:auto">
                     {% if current_user.is_authenticated %}
                         {% if current_user.id != video.uploader.id %}
-                            <form method="POST" action="{{ url_for('subscribe', channel_id=video.uploader.id) }}">
+                            <form method="POST" action="{{ url_for('main.subscribe', channel_id=video.uploader.id) }}">
                                 <button class="btn btn-accent">Subscribe</button>
                             </form>
                         {% else %}
-                            <form method="POST" action="{{ url_for('delete_video', video_id=video.id) }}" style="display:inline">
+                            <form method="POST" action="{{ url_for('main.delete_video', video_id=video.id) }}" style="display:inline">
                                 <button class="btn btn-primary">Delete</button>
                             </form>
-                            <form method="POST" action="{{ url_for('toggle_visibility', video_id=video.id) }}" style="display:inline">
+                            <form method="POST" action="{{ url_for('main.toggle_visibility', video_id=video.id) }}" style="display:inline">
                                 <select name="visibility">
                                     <option value="public" {% if video.is_public %}selected{% endif %}>Public</option>
                                     <option value="private" {% if not video.is_public %}selected{% endif %}>Private</option>
@@ -112,8 +112,8 @@
         <div class="sidebar">
         <h3>Up Next</h3>
         {% for rec in recommended %}
-        <a href="{{ url_for('watch', video_id=rec.id) }}" style="display:flex; gap:10px; margin-bottom:15px; align-items:start;">
-            <div style="width:160px; height:90px; background:var(--muted); border-radius:8px; display:flex; justify-content:center; align-items:center;">{% if rec.thumbnail %}<img src="{{ url_for('uploaded_file', filename=rec.thumbnail) }}" alt="{{ rec.title }}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">{% else %}▶{% endif %}</div>
+        <a href="{{ url_for('main.watch', video_id=rec.id) }}" style="display:flex; gap:10px; margin-bottom:15px; align-items:start;">
+            <div style="width:160px; height:90px; background:var(--muted); border-radius:8px; display:flex; justify-content:center; align-items:center;">{% if rec.thumbnail %}<img src="{{ url_for('main.uploaded_file', filename=rec.thumbnail) }}" alt="{{ rec.title }}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">{% else %}▶{% endif %}</div>
             <div>
                 <h4 style="margin:0; font-size:0.9rem;">{{ rec.title }}</h4>
                 <p style="margin:5px 0 0 0; font-size:0.8rem; color:var(--text-sec);">{{ rec.uploader.display_name or rec.uploader.username }}</p>

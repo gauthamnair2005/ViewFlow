@@ -52,18 +52,22 @@ def register():
         profile_pic_path = None
         if 'profile_pic' in request.files:
             file = request.files['profile_pic']
-            if file and file.filename and allowed_image_file(file.filename):
-                filename = secure_filename(file.filename)
-                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-                save_name = f"profile_{timestamp}_{filename}"
-                
-                # Create profiles directory if it doesn't exist
-                profiles_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'profiles')
-                os.makedirs(profiles_dir, exist_ok=True)
-                
-                save_path = os.path.join(profiles_dir, save_name)
-                file.save(save_path)
-                profile_pic_path = os.path.join('profiles', save_name)
+            if file and file.filename:
+                if allowed_image_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                    save_name = f"profile_{timestamp}_{filename}"
+                    
+                    # Create profiles directory if it doesn't exist
+                    profiles_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'profiles')
+                    os.makedirs(profiles_dir, exist_ok=True)
+                    
+                    save_path = os.path.join(profiles_dir, save_name)
+                    file.save(save_path)
+                    # Force forward slash for database path to ensure URL compatibility
+                    profile_pic_path = f"profiles/{save_name}"
+                else:
+                    flash('Invalid image file type. Allowed: jpg, jpeg, png, gif, webp')
 
         new_user = User(
             username=username,

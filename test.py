@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, abort, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, abort, jsonify, Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -30,7 +30,7 @@ app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'auth.login'
 
 ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv'}
 ALLOWED_IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
@@ -144,13 +144,18 @@ def generate_thumbnail(video_path, output_path):
         print(f"Error generating thumbnail: {e}")
         return None
 
+# ==========================================
+# BLUEPRINTS
+# ==========================================
+
+auth_bp = Blueprint('auth', __name__)
+main_bp = Blueprint('main', __name__)
+
+@main_bp.app_template_filter('format_date')
 def format_date(date):
     if not date:
         return 'Unknown'
     return date.strftime('%b %d, %Y')
-
-app.jinja_env.filters['format_date'] = format_date
-
 
 # --------------------------
 # Database / Uploads Init
@@ -252,11 +257,7 @@ def init_db():
 # Initialize DB and uploads at import time so the app is ready on start
 init_db()
 
-# ==========================================
-# ROUTES
-# ==========================================
-
-@app.route('/')
+@main_bp.route('/')
 def home():
     # Show public videos to everyone; owners see their own videos too
     if current_user and current_user.is_authenticated:
@@ -268,11 +269,11 @@ def home():
     return render_template('home.html', title="Home", videos=videos)
 
 
-@app.route('/search')
+@main_bp.route('/search')
 def search():
     query = request.args.get('q', '').strip()
     if not query:
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     
     # Search in video title, description, and uploader name
     search_pattern = f"%{query}%"
@@ -288,12 +289,12 @@ def search():
     
     return render_template('search.html', title=f"Search: {query}", query=query, videos=videos)
 
-@app.route('/test-async')
+@main_bp.route('/test-async')
 @login_required
 def test_async():
     return render_template('test_async.html')
 
-@app.route('/login', methods=['GET', 'POST'])
+@auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form.get('email')
@@ -301,11 +302,11 @@ def login():
         user = User.query.filter_by(email=email).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
-            return redirect(url_for('home'))
+            return redirect(url_for('main.home'))
         flash('Login failed. Check your email and password.')
     return render_template('login.html', title="Login")
 
-@app.route('/register', methods=['GET', 'POST'])
+@auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
@@ -319,25 +320,33 @@ def register():
         
         if User.query.filter_by(email=email).first():
             flash('Email already exists.')
-            return redirect(url_for('register'))
+            return redirect(url_for('auth.register'))
         
         if User.query.filter_by(username=username).first():
             flash('Username already taken.')
-            return redirect(url_for('register'))
+            return redirect(url_for('auth.register'))
         
         # Handle profile picture upload
         profile_pic_path = None
         if 'profile_pic' in request.files:
             file = request.files['profile_pic']
-            if file and file.filename and allowed_file(file.filename, 'image'):
-                filename = secure_filename(file.filename)
-                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-                save_name = f"profile_{timestamp}_{filename}"
-                
-                save_path = os.path.join(UPLOAD_FOLDER, save_name)
-                file.save(save_path)
-                profile_pic_path = save_name
-                print(f"[REGISTER] Saved profile picture: {save_name}")
+            if file and file.filename:
+                if allowed_file(file.filename, 'image'):
+                    filename = secure_filename(file.filename)
+                    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                    save_name = f"profile_{timestamp}_{filename}"
+                    
+                    # Create profiles directory if it doesn't exist
+                    profiles_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'profiles')
+                    os.makedirs(profiles_dir, exist_ok=True)
+                    
+                    save_path = os.path.join(profiles_dir, save_name)
+                    file.save(save_path)
+                    # Force forward slash for database path to ensure URL compatibility
+                    profile_pic_path = f"profiles/{save_name}"
+                    print(f"[REGISTER] Saved profile picture: {save_name}")
+                else:
+                    flash('Invalid image file type. Allowed: jpg, jpeg, png, gif, webp')
             else:
                 if file.filename:
                     print(f"[REGISTER] Profile picture rejected: {file.filename} (invalid format)")
@@ -358,16 +367,16 @@ def register():
         db.session.commit()
         login_user(new_user)
         flash('Account created successfully!')
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     return render_template('register.html', title="Register")
 
-@app.route('/logout')
+@auth_bp.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('home'))
+    return redirect(url_for('main.home'))
 
-@app.route('/upload', methods=['GET', 'POST'])
+@main_bp.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
     if request.method == 'POST':
@@ -403,11 +412,11 @@ def upload():
             )
             db.session.add(new_video)
             db.session.commit()
-            return redirect(url_for('home'))
+            return redirect(url_for('main.home'))
             
     return render_template('upload.html', title="Upload")
 
-@app.route('/watch/<int:video_id>')
+@main_bp.route('/watch/<int:video_id>')
 def watch(video_id):
     video = Video.query.get_or_404(video_id)
     # Only allow watching private videos if owner
@@ -420,13 +429,14 @@ def watch(video_id):
         is_owner = current_user.is_authenticated and current_user.id == video.user_id
         print(f"[VIEW DEBUG] Video: {video.title}, User: {current_user.username if current_user.is_authenticated else 'Anonymous'}, Owner: {is_owner}, Current Views: {video.views}")
         
-        if not is_owner:
-            old_views = video.views or 0
-            video.views = old_views + 1
-            db.session.commit()
-            print(f"[VIEW DEBUG] Views incremented: {old_views} -> {video.views}")
-        else:
-            print(f"[VIEW DEBUG] Owner viewing - no increment")
+        # Allow owner to increment views for testing purposes
+        # if not is_owner:
+        old_views = video.views or 0
+        video.views = old_views + 1
+        db.session.commit()
+        print(f"[VIEW DEBUG] Views incremented: {old_views} -> {video.views}")
+        # else:
+        #     print(f"[VIEW DEBUG] Owner viewing - no increment")
     except Exception as e:
         print(f"[VIEW DEBUG] Error: {e}")
         db.session.rollback()
@@ -458,14 +468,14 @@ def watch(video_id):
                            likes=likes, dislikes=dislikes, is_liked=is_liked, is_disliked=is_disliked,
                            is_subscribed=is_subscribed)
 
-@app.route('/uploads/<filename>')
+@main_bp.route('/uploads/<path:filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 # Minimal stubs for endpoints referenced by templates originally written for a blueprint.
 # These are lightweight and redirect back to home or the referrer so `url_for` works.
-@app.route('/user/<string:username>')
+@main_bp.route('/user/<string:username>')
 def user_profile(username):
     # Render a simple channel page showing the user's public videos.
     channel = User.query.filter_by(username=username).first()
@@ -497,14 +507,14 @@ def user_profile(username):
     return render_template('user.html', title=display_name_val, channel=channel, videos=videos, subs_count=subs_count, is_subscribed=is_subscribed)
 
 
-@app.route('/subscribe/<int:channel_id>', methods=['POST'])
+@main_bp.route('/subscribe/<int:channel_id>', methods=['POST'])
 def subscribe(channel_id):
     if not current_user.is_authenticated:
         # If AJAX request, return JSON for client to redirect to login
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify({'error': 'login_required', 'redirect': url_for('login')}), 401
+            return jsonify({'error': 'login_required', 'redirect': url_for('auth.login')}), 401
         flash('Please sign in to subscribe')
-        return redirect(request.referrer or url_for('login'))
+        return redirect(request.referrer or url_for('auth.login'))
 
     channel = User.query.get_or_404(channel_id)
     # toggle subscription
@@ -533,17 +543,17 @@ def subscribe(channel_id):
             db.session.rollback()
             flash('Failed to subscribe')
     # Default redirect for non-AJAX
-    return redirect(request.referrer or url_for('user_profile', username=channel.username))
+    return redirect(request.referrer or url_for('main.user_profile', username=channel.username))
 
 
-@app.route('/video/<int:video_id>/delete', methods=['POST'])
+@main_bp.route('/video/<int:video_id>/delete', methods=['POST'])
 @login_required
 def delete_video(video_id):
     video = Video.query.get_or_404(video_id)
     # Only owner can delete
     if not (current_user.is_authenticated and current_user.id == video.user_id):
         flash('Not authorized to delete this video')
-        return redirect(request.referrer or url_for('home'))
+        return redirect(request.referrer or url_for('main.home'))
 
     # remove file from disk
     try:
@@ -568,17 +578,17 @@ def delete_video(video_id):
         db.session.rollback()
         flash('Failed to delete video')
 
-    return redirect(url_for('home'))
+    return redirect(url_for('main.home'))
 
 
-@app.route('/video/<int:video_id>/visibility', methods=['POST'])
+@main_bp.route('/video/<int:video_id>/visibility', methods=['POST'])
 @login_required
 def toggle_visibility(video_id):
     video = Video.query.get_or_404(video_id)
     # Only owner can change visibility
     if not (current_user.is_authenticated and current_user.id == video.user_id):
         flash('Not authorized')
-        return redirect(request.referrer or url_for('home'))
+        return redirect(request.referrer or url_for('main.home'))
 
     new_vis = request.form.get('visibility')
     video.is_public = True if new_vis == 'public' else False
@@ -588,17 +598,17 @@ def toggle_visibility(video_id):
     except Exception:
         db.session.rollback()
         flash('Failed to update visibility')
-    return redirect(url_for('watch', video_id=video_id))
+    return redirect(url_for('main.watch', video_id=video_id))
 
 
-@app.route('/video/<int:video_id>/react', methods=['POST'])
+@main_bp.route('/video/<int:video_id>/react', methods=['POST'])
 def react_video(video_id):
     # Check authentication first for AJAX requests
     if not current_user.is_authenticated:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify({'error': 'Not authenticated', 'redirect': url_for('login')}), 401
+            return jsonify({'error': 'Not authenticated', 'redirect': url_for('auth.login')}), 401
         flash('Please log in to react to videos')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
     
     video = Video.query.get_or_404(video_id)
     action = request.form.get('action')
@@ -606,7 +616,7 @@ def react_video(video_id):
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'error': 'Invalid action'}), 400
         flash('Invalid reaction')
-        return redirect(request.referrer or url_for('watch', video_id=video_id))
+        return redirect(request.referrer or url_for('main.watch', video_id=video_id))
 
     t = 1 if action == 'like' else -1
     existing = Reaction.query.filter_by(video_id=video.id, user_id=current_user.id).first()
@@ -637,7 +647,10 @@ def react_video(video_id):
         r = Reaction.query.filter_by(video_id=video.id, user_id=current_user.id).first()
         return jsonify({'likes': likes, 'dislikes': dislikes, 'is_liked': bool(r and r.type == 1), 'is_disliked': bool(r and r.type == -1)})
 
-    return redirect(request.referrer or url_for('watch', video_id=video_id))
+    return redirect(request.referrer or url_for('main.watch', video_id=video_id))
+
+app.register_blueprint(auth_bp)
+app.register_blueprint(main_bp)
 
 # ==========================================
 # MAIN EXECUTION

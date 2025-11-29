@@ -43,10 +43,10 @@ def watch(video_id):
             abort(404)
 
     try:
-        # increment views for non-owner viewers
-        if not (current_user.is_authenticated and current_user.id == video.user_id):
-            video.views = (video.views or 0) + 1
-            db.session.commit()
+        # increment views for everyone (including owner for testing)
+        # if not (current_user.is_authenticated and current_user.id == video.user_id):
+        video.views = (video.views or 0) + 1
+        db.session.commit()
     except Exception:
         db.session.rollback()
     
@@ -324,3 +324,12 @@ def react_video(video_id):
         return jsonify({'likes': likes, 'dislikes': dislikes, 'is_liked': bool(r and r.type == 1), 'is_disliked': bool(r and r.type == -1)})
     
     return redirect(request.referrer or url_for('main.watch', video_id=video_id))
+
+@main_bp.route('/search')
+def search():
+    query = request.args.get('q', '')
+    if query:
+        videos = Video.query.filter(Video.title.contains(query) | Video.description.contains(query)).filter_by(is_public=True).all()
+    else:
+        videos = []
+    return render_template('search.html', title='Search', videos=videos, query=query)
