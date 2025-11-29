@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1] - 2025-11-29
+
+### Added
+- **Video Player Replay Functionality**
+  - Replay button (🔄) appears when video ends
+  - Large centered replay button (96px circle)
+  - Play button changes to replay icon when video ends
+  - Works with both HTML5 and YouTube videos
+  - Multiple replay methods: center button, control button, or space bar
+  - Replay button stays above "Up Next" overlay
+  - Enhanced visual feedback with hover effects
+  
+- **Player Visual Enhancements**
+  - Replay button hover effect: darker background + scale(1.05)
+  - Smooth transitions (0.2s ease)
+  - Darker replay button background for better visibility
+  - Replay button z-index increased to 35 (above overlay at 30)
+
+### Changed
+- Modified `player.js` to handle video end state
+- Added `showReplayBtn()` and `hideReplayBtn()` helper functions
+- Updated play button click behavior to detect ended state
+- Updated big play button to handle replay functionality
+- Enhanced `.vf-bigplay` CSS with z-index and hover effects
+- "Play Next" button now properly resets replay state
+
+### Fixed
+- Replay button now stays clickable above "Up Next" overlay
+- No interference between replay and "Up Next" features
+- Video properly restarts from beginning on replay
+- Button states correctly managed across play/pause/replay
+
 ## [0.3.0] - 2025-11-29
 
 ### Added
