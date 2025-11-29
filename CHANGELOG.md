@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2025-11-29
+
+### Fixed
+- **Subscribe Button Async Update**
+  - Fixed subscribe button not updating text/style without page reload
+  - Added subscribe action handling in `async_actions_simple.js`
+  - Updated `user.html` template with proper classes (`js-async-form`, `js-subscribe-btn`)
+  - Added `data-action="subscribe"` attribute to forms
+  - Wrapped subscriber count in `<span id="subs-count">` for dynamic updates
+  - Button now correctly toggles between "Subscribe" and "Subscribed"
+  - Button style now toggles between `btn-accent` and `btn-primary`
+  - Subscriber count updates in real-time on user profile pages
+
+### Changed
+- Improved async form handler to support multiple action types (like, dislike, subscribe)
+- Added conditional logic to handle different action responses
+- Enhanced console logging for subscribe actions with `[ASYNC]` prefix
+
 ## [0.2.0] - 2025-11-29
 
 ### Added
