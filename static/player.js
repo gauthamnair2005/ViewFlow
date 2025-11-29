@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', function () {
   function hideOverlay() { if (overlay) overlay.style.display = 'none'; }
   function showBigPlay() { if (!bigPlay) return; bigPlay.classList.remove('hidden'); }
   function hideBigPlay() { if (!bigPlay) return; bigPlay.classList.add('hidden'); }
+  function showReplayBtn() { if (!bigPlay) return; bigPlay.classList.remove('hidden'); bigPlay.innerHTML = '<span style="font-size: 48px;">🔄</span>'; }
+  function hideReplayBtn() { if (!bigPlay) return; bigPlay.innerHTML = '<span style="font-size: 34px;">▶</span>'; }
 
   // HTML5 video flow
   function initHTML5(src) {
@@ -62,10 +64,20 @@ document.addEventListener('DOMContentLoaded', function () {
       updateTime();
     });
 
-    html5video.addEventListener('play', function () { hideOverlay(); hideBigPlay(); playBtn.textContent = '❚❚'; startProgressTimer(); });
+    html5video.addEventListener('play', function () { hideOverlay(); hideBigPlay(); playBtn.textContent = '❚❚'; hideReplayBtn(); startProgressTimer(); });
     html5video.addEventListener('pause', function () { playBtn.textContent = '▶'; stopProgressTimer(); });
-    html5video.addEventListener('ended', function () { showOverlay(); showBigPlay(); playBtn.textContent = '▶'; stopProgressTimer(); });
-    playBtn.addEventListener('click', function () { togglePlay(); });
+    html5video.addEventListener('ended', function () { showOverlay(); showReplayBtn(); playBtn.textContent = '🔄'; stopProgressTimer(); });
+    playBtn.addEventListener('click', function () { 
+      if (html5video.ended) {
+        html5video.currentTime = 0;
+        html5video.play();
+        playBtn.textContent = '❚❚';
+        hideReplayBtn();
+        hideOverlay();
+      } else {
+        togglePlay();
+      }
+    });
 
     progress.addEventListener('click', function (e) {
       var rect = progress.getBoundingClientRect();
@@ -90,7 +102,17 @@ document.addEventListener('DOMContentLoaded', function () {
     volumeEl.addEventListener('input', function () { html5video.volume = parseFloat(volumeEl.value); updateMuteIcon(); });
     if (muteBtn) muteBtn.addEventListener('click', function () { toggleMute(); });
     if (speedBtn) speedBtn.addEventListener('click', function () { cycleSpeed(); });
-    if (bigPlay) bigPlay.addEventListener('click', function () { if (html5video.paused) { html5video.play(); } else { html5video.pause(); } });
+    if (bigPlay) bigPlay.addEventListener('click', function () { 
+      if (html5video.ended) {
+        html5video.currentTime = 0;
+        html5video.play();
+        hideReplayBtn();
+      } else if (html5video.paused) { 
+        html5video.play(); 
+      } else { 
+        html5video.pause(); 
+      } 
+    });
   }
 
   function updateTime() {
@@ -129,9 +151,9 @@ document.addEventListener('DOMContentLoaded', function () {
         events: {
           onReady: function (e) { ytReady = true; volumeEl.value = (e.target.getVolume() / 100) || 1; updateTime(); },
           onStateChange: function (e) {
-            if (e.data === YT.PlayerState.PLAYING) { playBtn.textContent = '❚❚'; hideOverlay(); hideBigPlay(); startProgressTimer(); }
+            if (e.data === YT.PlayerState.PLAYING) { playBtn.textContent = '❚❚'; hideOverlay(); hideBigPlay(); hideReplayBtn(); startProgressTimer(); }
             else if (e.data === YT.PlayerState.PAUSED) { playBtn.textContent = '▶'; stopProgressTimer(); }
-            else if (e.data === YT.PlayerState.ENDED) { playBtn.textContent = '▶'; showOverlay(); showBigPlay(); stopProgressTimer(); }
+            else if (e.data === YT.PlayerState.ENDED) { playBtn.textContent = '🔄'; showOverlay(); showReplayBtn(); stopProgressTimer(); }
           }
         }
       });
@@ -150,14 +172,37 @@ document.addEventListener('DOMContentLoaded', function () {
     playBtn.addEventListener('click', function () {
       if (!ytReady) return;
       var state = ytPlayer.getPlayerState();
-      if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.CUED) ytPlayer.playVideo(); else if (state === YT.PlayerState.PLAYING) ytPlayer.pauseVideo();
+      if (state === YT.PlayerState.ENDED) {
+        ytPlayer.seekTo(0);
+        ytPlayer.playVideo();
+        playBtn.textContent = '❚❚';
+        hideReplayBtn();
+        hideOverlay();
+      } else if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.CUED) {
+        ytPlayer.playVideo();
+      } else if (state === YT.PlayerState.PLAYING) {
+        ytPlayer.pauseVideo();
+      }
     });
 
     // volume/mute handling for YT
     if (muteBtn) muteBtn.addEventListener('click', function () { toggleMute(); });
     if (speedBtn) speedBtn.addEventListener('click', function () { cycleSpeed(); });
 
-    if (bigPlay) bigPlay.addEventListener('click', function () { if (ytReady) { var st = ytPlayer.getPlayerState(); if (st !== YT.PlayerState.PLAYING) ytPlayer.playVideo(); else ytPlayer.pauseVideo(); } });
+    if (bigPlay) bigPlay.addEventListener('click', function () { 
+      if (ytReady) { 
+        var st = ytPlayer.getPlayerState(); 
+        if (st === YT.PlayerState.ENDED) {
+          ytPlayer.seekTo(0);
+          ytPlayer.playVideo();
+          hideReplayBtn();
+        } else if (st !== YT.PlayerState.PLAYING) {
+          ytPlayer.playVideo();
+        } else {
+          ytPlayer.pauseVideo();
+        }
+      } 
+    });
 
     progress.addEventListener('click', function (e) {
       if (!ytReady) return;
@@ -248,7 +293,13 @@ document.addEventListener('DOMContentLoaded', function () {
         var src = first.getAttribute('data-src');
         if (src) {
           // switch to the new source (HTML5 only)
-          if (html5video) { html5video.src = src; html5video.play(); hideOverlay(); }
+          if (html5video) { 
+            html5video.src = src; 
+            html5video.play(); 
+            hideOverlay(); 
+            hideReplayBtn();
+            playBtn.textContent = '❚❚';
+          }
           else if (ytPlayer) { /* can't change YouTube iframe source safely here */ }
         }
       }
