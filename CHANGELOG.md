@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2025-11-29
+
+### Added
+- **Video Player Theatre Mode**
+  - Now video player can switch to theatre mode, giving best viewing experience.
+
+### Fixed
+- Fixed fullscreen mode to include proper aspect ratio.
+
 ## [0.3.1] - 2025-11-29
 
 ### Added
