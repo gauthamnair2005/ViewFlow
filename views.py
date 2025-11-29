@@ -1,9 +1,10 @@
 import os
 import subprocess
 import random
-from flask import Blueprint, render_template, request, redirect, url_for, send_from_directory, flash, current_app
+import threading
+from flask import Blueprint, render_template, request, redirect, url_for, send_from_directory, flash, current_app, abort, jsonify
 from werkzeug.utils import secure_filename
-from models import db, Video, User
+from models import db, Video, User, Reaction, Subscription
 from flask_login import current_user, login_required
 from datetime import datetime
 
@@ -42,12 +43,39 @@ def watch(video_id):
             abort(404)
 
     try:
-        video.views = (video.views or 0) + 1
-        db.session.commit()
+        # increment views for non-owner viewers
+        if not (current_user.is_authenticated and current_user.id == video.user_id):
+            video.views = (video.views or 0) + 1
+            db.session.commit()
     except Exception:
         db.session.rollback()
-    recommended = Video.query.filter(Video.id != video_id).order_by(db.func.random()).limit(5).all()
-    return render_template('watch.html', title=video.title, video=video, recommended=recommended)
+    
+    # recommended: only show public videos or owner's own videos
+    if current_user and current_user.is_authenticated:
+        recommended = Video.query.filter(
+            (Video.id != video_id) & ((Video.is_public == True) | (Video.user_id == current_user.id))
+        ).order_by(db.func.random()).limit(5).all()
+    else:
+        recommended = Video.query.filter(Video.id != video_id, Video.is_public == True).order_by(db.func.random()).limit(5).all()
+    
+    # compute reactions counts
+    likes = Reaction.query.filter_by(video_id=video_id, type=1).count()
+    dislikes = Reaction.query.filter_by(video_id=video_id, type=-1).count()
+    
+    is_liked = False
+    is_disliked = False
+    is_subscribed = False
+    if current_user and current_user.is_authenticated:
+        r = Reaction.query.filter_by(video_id=video_id, user_id=current_user.id).first()
+        if r:
+            is_liked = (r.type == 1)
+            is_disliked = (r.type == -1)
+        s = Subscription.query.filter_by(subscriber_id=current_user.id, channel_id=video.user_id).first()
+        is_subscribed = bool(s)
+    
+    return render_template('watch.html', title=video.title, video=video, recommended=recommended,
+                           likes=likes, dislikes=dislikes, is_liked=is_liked, is_disliked=is_disliked,
+                           is_subscribed=is_subscribed)
 
 
 @main_bp.route('/uploads/<path:filename>')
@@ -210,20 +238,89 @@ def user_profile(username):
 
 
 @main_bp.route('/subscribe/<int:channel_id>', methods=['POST'])
-@login_required
 def subscribe(channel_id):
+    if not current_user.is_authenticated:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'error': 'login_required', 'redirect': url_for('auth.login')}), 401
+        flash('Please sign in to subscribe')
+        return redirect(request.referrer or url_for('auth.login'))
+    
     if channel_id == current_user.id:
         flash('Cannot subscribe to yourself')
         return redirect(request.referrer or url_for('main.home'))
-    from models import Subscription
+    
+    channel = User.query.get_or_404(channel_id)
     existing = Subscription.query.filter_by(channel_id=channel_id, subscriber_id=current_user.id).first()
     if existing:
-        db.session.delete(existing)
-        db.session.commit()
-        flash('Unsubscribed')
+        try:
+            db.session.delete(existing)
+            db.session.commit()
+            flash('Unsubscribed')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                subs_count = Subscription.query.filter_by(channel_id=channel_id).count()
+                return jsonify({'subscribed': False, 'subs_count': subs_count})
+        except Exception:
+            db.session.rollback()
+            flash('Failed to unsubscribe')
     else:
-        sub = Subscription(channel_id=channel_id, subscriber_id=current_user.id)
-        db.session.add(sub)
-        db.session.commit()
-        flash('Subscribed')
-    return redirect(request.referrer or url_for('main.user_profile', username=User.query.get(channel_id).username))
+        try:
+            sub = Subscription(channel_id=channel_id, subscriber_id=current_user.id)
+            db.session.add(sub)
+            db.session.commit()
+            flash('Subscribed')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                subs_count = Subscription.query.filter_by(channel_id=channel_id).count()
+                return jsonify({'subscribed': True, 'subs_count': subs_count})
+        except Exception:
+            db.session.rollback()
+            flash('Failed to subscribe')
+    return redirect(request.referrer or url_for('main.user_profile', username=channel.username))
+
+
+@main_bp.route('/video/<int:video_id>/react', methods=['POST'])
+def react_video(video_id):
+    # Check authentication first for AJAX requests
+    if not current_user.is_authenticated:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'error': 'Not authenticated', 'redirect': url_for('auth.login')}), 401
+        flash('Please log in to react to videos')
+        return redirect(url_for('auth.login'))
+    
+    video = Video.query.get_or_404(video_id)
+    action = request.form.get('action')
+    if action not in ('like', 'dislike'):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'error': 'Invalid action'}), 400
+        flash('Invalid reaction')
+        return redirect(request.referrer or url_for('main.watch', video_id=video_id))
+    
+    t = 1 if action == 'like' else -1
+    existing = Reaction.query.filter_by(video_id=video.id, user_id=current_user.id).first()
+    try:
+        if existing:
+            if existing.type == t:
+                # undo
+                db.session.delete(existing)
+                db.session.commit()
+                flash('Reaction removed')
+            else:
+                existing.type = t
+                db.session.commit()
+                flash('Reaction updated')
+        else:
+            r = Reaction(video_id=video.id, user_id=current_user.id, type=t)
+            db.session.add(r)
+            db.session.commit()
+            flash('Reaction recorded')
+    except Exception:
+        db.session.rollback()
+        flash('Failed to record reaction')
+    
+    # For AJAX requests return JSON with updated counts and state
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        likes = Reaction.query.filter_by(video_id=video.id, type=1).count()
+        dislikes = Reaction.query.filter_by(video_id=video.id, type=-1).count()
+        r = Reaction.query.filter_by(video_id=video.id, user_id=current_user.id).first()
+        return jsonify({'likes': likes, 'dislikes': dislikes, 'is_liked': bool(r and r.type == 1), 'is_disliked': bool(r and r.type == -1)})
+    
+    return redirect(request.referrer or url_for('main.watch', video_id=video_id))

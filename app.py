@@ -41,30 +41,30 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
-        # Try to bundle Video.js locally for offline/dev use
-        def _ensure_videojs_local():
-            try:
-                import urllib.request
-                static_vendor = os.path.join(app.static_folder, 'vendor')
-                os.makedirs(static_vendor, exist_ok=True)
-                js_path = os.path.join(static_vendor, 'video.min.js')
-                css_path = os.path.join(static_vendor, 'video-js.css')
-                have = True
-                if not os.path.exists(js_path):
-                    try:
-                        urllib.request.urlretrieve('https://vjs.zencdn.net/8.20.0/video.min.js', js_path)
-                    except Exception:
-                        have = False
-                if not os.path.exists(css_path):
-                    try:
-                        urllib.request.urlretrieve('https://vjs.zencdn.net/8.20.0/video-js.css', css_path)
-                    except Exception:
-                        have = False
-                app.config['VIDEOJS_LOCAL'] = have and os.path.exists(js_path) and os.path.exists(css_path)
-            except Exception:
-                app.config['VIDEOJS_LOCAL'] = False
+    # Try to bundle Video.js locally for offline/dev use
+    def _ensure_videojs_local():
+        try:
+            import urllib.request
+            static_vendor = os.path.join(app.static_folder, 'vendor')
+            os.makedirs(static_vendor, exist_ok=True)
+            js_path = os.path.join(static_vendor, 'video.min.js')
+            css_path = os.path.join(static_vendor, 'video-js.css')
+            have = True
+            if not os.path.exists(js_path):
+                try:
+                    urllib.request.urlretrieve('https://vjs.zencdn.net/8.20.0/video.min.js', js_path)
+                except Exception:
+                    have = False
+            if not os.path.exists(css_path):
+                try:
+                    urllib.request.urlretrieve('https://vjs.zencdn.net/8.20.0/video-js.css', css_path)
+                except Exception:
+                    have = False
+            app.config['VIDEOJS_LOCAL'] = have and os.path.exists(js_path) and os.path.exists(css_path)
+        except Exception:
+            app.config['VIDEOJS_LOCAL'] = False
 
-        _ensure_videojs_local()
+    _ensure_videojs_local()
 
     # Create DB and try to add new columns if older DB exists
     with app.app_context():

@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, abort
+from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -191,6 +191,12 @@ def home():
         videos = Video.query.filter_by(is_public=True).order_by(Video.upload_date.desc()).all()
     return render_template('home.html', title="Home", videos=videos)
 
+
+@app.route('/test-async')
+@login_required
+def test_async():
+    return render_template('test_async.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -353,7 +359,7 @@ def subscribe(channel_id):
     if not current_user.is_authenticated:
         # If AJAX request, return JSON for client to redirect to login
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return {'error': 'login_required', 'redirect': url_for('login')}, 401
+            return jsonify({'error': 'login_required', 'redirect': url_for('login')}), 401
         flash('Please sign in to subscribe')
         return redirect(request.referrer or url_for('login'))
 
@@ -367,7 +373,7 @@ def subscribe(channel_id):
             flash('Unsubscribed')
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 subs_count = Subscription.query.filter_by(channel_id=channel.id).count()
-                return {'subscribed': False, 'subs_count': subs_count}
+                return jsonify({'subscribed': False, 'subs_count': subs_count})
         except Exception:
             db.session.rollback()
             flash('Failed to unsubscribe')
@@ -379,7 +385,7 @@ def subscribe(channel_id):
             flash('Subscribed')
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 subs_count = Subscription.query.filter_by(channel_id=channel.id).count()
-                return {'subscribed': True, 'subs_count': subs_count}
+                return jsonify({'subscribed': True, 'subs_count': subs_count})
         except Exception:
             db.session.rollback()
             flash('Failed to subscribe')
@@ -443,11 +449,19 @@ def toggle_visibility(video_id):
 
 
 @app.route('/video/<int:video_id>/react', methods=['POST'])
-@login_required
 def react_video(video_id):
+    # Check authentication first for AJAX requests
+    if not current_user.is_authenticated:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'error': 'Not authenticated', 'redirect': url_for('login')}), 401
+        flash('Please log in to react to videos')
+        return redirect(url_for('login'))
+    
     video = Video.query.get_or_404(video_id)
     action = request.form.get('action')
     if action not in ('like', 'dislike'):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'error': 'Invalid action'}), 400
         flash('Invalid reaction')
         return redirect(request.referrer or url_for('watch', video_id=video_id))
 
@@ -478,7 +492,7 @@ def react_video(video_id):
         likes = Reaction.query.filter_by(video_id=video.id, type=1).count()
         dislikes = Reaction.query.filter_by(video_id=video.id, type=-1).count()
         r = Reaction.query.filter_by(video_id=video.id, user_id=current_user.id).first()
-        return {'likes': likes, 'dislikes': dislikes, 'is_liked': bool(r and r.type == 1), 'is_disliked': bool(r and r.type == -1)}
+        return jsonify({'likes': likes, 'dislikes': dislikes, 'is_liked': bool(r and r.type == 1), 'is_disliked': bool(r and r.type == -1)})
 
     return redirect(request.referrer or url_for('watch', video_id=video_id))
 

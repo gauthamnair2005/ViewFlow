@@ -34,3 +34,11 @@ class Subscription(db.Model):
     channel_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+
+class Reaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    video_id = db.Column(db.Integer, db.ForeignKey('video.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    type = db.Column(db.Integer, nullable=False)  # 1 for like, -1 for dislike
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
