@@ -8,6 +8,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from jinja2 import DictLoader
 
+__version__ = '0.2.0'
+
 # ==========================================
 # CONFIGURATION
 # ==========================================
@@ -48,11 +50,14 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
+    password = db.Column(db.String(200), nullable=False)
     display_name = db.Column(db.String(150), nullable=True)
-    location = db.Column(db.String(150), nullable=True)
-    age = db.Column(db.Integer, nullable=True)
     date_joined = db.Column(db.DateTime, default=datetime.utcnow)
+    location = db.Column(db.String(200), nullable=True)
+    age = db.Column(db.Integer, nullable=True)
+    gender = db.Column(db.String(50), nullable=True)
+    profile_pic = db.Column(db.String(300), nullable=True)
+    bio = db.Column(db.Text, nullable=True)
     videos = db.relationship('Video', backref='uploader', lazy=True)
 
 class Video(db.Model):
@@ -213,23 +218,54 @@ def login():
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
+        display_name = request.form.get('display_name') or username
         email = request.form.get('email')
         password = request.form.get('password')
+        age = request.form.get('age')
+        gender = request.form.get('gender')
+        location = request.form.get('location')
+        bio = request.form.get('bio')
         
         if User.query.filter_by(email=email).first():
             flash('Email already exists.')
             return redirect(url_for('register'))
+        
+        if User.query.filter_by(username=username).first():
+            flash('Username already taken.')
+            return redirect(url_for('register'))
+        
+        # Handle profile picture upload
+        profile_pic_path = None
+        if 'profile_pic' in request.files:
+            file = request.files['profile_pic']
+            if file and file.filename and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                save_name = f"profile_{timestamp}_{filename}"
+                
+                profiles_dir = os.path.join(UPLOAD_FOLDER, 'profiles')
+                os.makedirs(profiles_dir, exist_ok=True)
+                
+                save_path = os.path.join(profiles_dir, save_name)
+                file.save(save_path)
+                profile_pic_path = os.path.join('profiles', save_name)
             
         new_user = User(
-            username=username, 
+            username=username,
+            display_name=display_name,
             email=email, 
             password=generate_password_hash(password, method='pbkdf2:sha256'),
-            display_name=username,
+            age=int(age) if age else None,
+            gender=gender if gender else None,
+            location=location if location else None,
+            bio=bio if bio else None,
+            profile_pic=profile_pic_path,
             date_joined=datetime.utcnow()
         )
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
+        flash('Account created successfully!')
         return redirect(url_for('home'))
     return render_template('register.html', title="Register")
 

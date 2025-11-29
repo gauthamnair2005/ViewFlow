@@ -3,6 +3,8 @@ from flask import Flask
 from models import db
 from flask_login import LoginManager
 
+__version__ = '0.2.0'
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
 

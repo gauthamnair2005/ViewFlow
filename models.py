@@ -10,9 +10,14 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     display_name = db.Column(db.String(150), nullable=True)
-    age = db.Column(db.Integer, nullable=True)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    date_joined = db.Column(db.DateTime, default=datetime.utcnow)
+    location = db.Column(db.String(200), nullable=True)  # Region
+    age = db.Column(db.Integer, nullable=True)
+    gender = db.Column(db.String(50), nullable=True)
+    profile_pic = db.Column(db.String(300), nullable=True)  # Path to profile picture
+    bio = db.Column(db.Text, nullable=True)  # Optional bio/description
     videos = db.relationship('Video', backref='uploader', lazy=True)
 
 
