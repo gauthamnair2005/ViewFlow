@@ -1,5 +1,7 @@
 # ViewFlow
 
+**Version:** 0.2.0
+
 ViewFlow is a lightweight Flask-based video sharing prototype used for local development and UI iteration. It provides a minimal video upload, playback (HTML5 + YouTube iframe), channel pages, simple subscription and like/dislike reactions, and a custom themeable player UI.
 
 This repository is intended as a development playground, not a production-ready system.
@@ -8,9 +10,11 @@ This repository is intended as a development playground, not a production-ready 
 - Upload and serve local video files (stored in `uploads/`).
 - Custom player that supports HTML5 videos and YouTube iframes with custom controls.
 - Like/dislike reactions and subscribe/unsubscribe (stored in SQLite DB).
+- **Enhanced user profiles** with display name, age, gender, location, bio, and profile pictures.
 - Per-video privacy (public/private) and owner-only delete.
 - Light/Dark theme with a persistent toggle stored in `localStorage`.
 - Async actions for reactions and subscriptions to avoid full page reloads.
+- **Comprehensive registration system** with profile customization.
 
 ## Quick start (development)
 
