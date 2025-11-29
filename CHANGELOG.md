@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2025-11-29
+
+### Added
+- **Comprehensive Form Element Styling**
+  - Enhanced all input types with theme-aware styling
+  - Custom file upload button with accent color and hover effects
+  - Styled select dropdowns with proper focus/hover states
+  - Textarea with vertical resize and minimum height
+  - Number input with visible spin buttons
+  - Checkbox and radio button styling with accent color
+  - Form validation states (valid/invalid with color indicators)
+  - Disabled state styling with reduced opacity
+  - Label styling with bold font and proper spacing
+  - Placeholder styling with secondary text color
+  - Range input slider styling for volume controls
+  
+- **Visual Feedback Enhancements**
+  - Smooth transitions (0.2s ease) on all form interactions
+  - Focus glow effect with accent color shadow
+  - Hover border color changes
+  - File selector button hover animation with transform
+  - Upload progress bar styling (for future implementation)
+
+### Fixed
+- **Select Dropdown Rendering**
+  - Removed `appearance: none` that broke native dropdown functionality
+  - Removed custom SVG arrow that caused display issues
+  - Dropdowns now open and display options correctly
+  
+- **Video Player Controls**
+  - Fixed range input (volume slider) being affected by global input styles
+  - Excluded range, checkbox, and radio inputs from global form styles
+  - Added specific overrides for range input hover/focus states
+  - Video seek bar and volume slider now work properly without conflicts
+
+### Changed
+- Enhanced CSS selector specificity for form elements
+- Form elements now use `input:not([type="range"]):not([type="checkbox"]):not([type="radio"])` selector
+- Range inputs have dedicated styling separate from text inputs
+- Search input expands on focus (400px → 500px)
+- All form elements maintain consistent 8px border-radius
+
 ## [0.2.1] - 2025-11-29
 
 ### Fixed
