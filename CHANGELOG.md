@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.1] - 2025-11-29
+
+### Fixed
+- **Template & Route Compatibility**
+  - Refactored `test.py` to use Flask Blueprints (`main`, `auth`) matching the production app structure.
+  - Updated all templates (`base.html`, `home.html`, `user.html`, etc.) to use namespaced `url_for` calls (e.g., `main.home`).
+  - Fixed `BuildError` caused by mismatched endpoint names between templates and route definitions.
+  - Added missing `/search` route to `views.py` to prevent crashes.
+
+- **File Uploads & Serving**
+  - Fixed profile picture upload paths in `auth.py` to explicitly use forward slashes for compatibility.
+  - Updated `uploaded_file` route in `test.py` to support serving files from subdirectories (e.g., `uploads/profiles/`).
+  - Fixed issue where uploaded profile pictures were not displaying due to incorrect URL generation.
+
+- **View Counting**
+  - Reverted view counting logic to correctly exclude video owners from incrementing their own view counts.
+
 ## [0.4.0] - 2025-11-29
 
 ### Added
