@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ViewFlow - {{ title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
     <link rel="stylesheet" href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/11.0.0/css/fabric.min.css">
     {% if config.VIDEOJS_LOCAL %}
     <link rel="stylesheet" href="{{ url_for('static', filename='vendor/video-js.css') }}">
@@ -14,7 +18,7 @@
 </head>
 <body class="ms-Fabric theme-dark">
     <nav class="navbar">
-        <a href="{{ url_for('main.home') }}" class="logo">📹 View<span>Flow</span></a>
+        <a href="{{ url_for('main.home') }}" class="logo"><img src="{{ url_for('static', filename='logo.svg') }}" alt="ViewFlow Logo" class="logo-icon"><span>View<span>Flow</span></span></a>
         <form action="{{ url_for('main.search') }}" method="GET" style="display:inline;">
             <input type="text" name="q" placeholder="Search" class="search-input">
         </form>

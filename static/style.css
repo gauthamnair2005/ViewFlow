@@ -14,7 +14,7 @@
     --tooltip-bg: rgba(0,0,0,0.8);
     --tooltip-fg: var(--text-main);
 }
-body { margin: 0; font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--bg-color); color: var(--text-main); }
+body { margin: 0; font-family: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--bg-color); color: var(--text-main); }
 
 /* Light theme overrides applied when `body.theme-light` is present */
 body.theme-light {
@@ -125,7 +125,8 @@ a { text-decoration: none; color: inherit; }
     border-bottom: 1px solid var(--border);
     box-sizing: border-box;
 }
-.logo { font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+.logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
+.logo-icon { width: 32px; height: 32px; }
 .logo span { color: var(--accent); }
 .nav-links { display: flex; gap: 20px; align-items: center; }
 .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; transition: 0.15s; }
