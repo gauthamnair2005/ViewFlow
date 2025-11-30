@@ -2,9 +2,11 @@
 {% block content %}
 <div class="watch-container">
     <div class="main-player">
-        <div style="position:relative">
+        <div style="position:relative" class="player-wrapper">
+            <canvas id="ambient-canvas" class="ambient-light"></canvas>
             <!-- ViewFlow Custom Player -->
-            <div id="vf-player" class="vf-player" data-video-src="{{ url_for('main.uploaded_file', filename=video.filename) }}" data-youtube="{{ video.youtube_url|default('') }}" {% if video.thumbnail %}style="background-image: url('{{ url_for('main.uploaded_file', filename=video.thumbnail) }}'); background-size:cover; background-position:center;"{% endif %}>
+            <div id="vf-player" class="vf-player" data-video-src="{{ url_for('main.uploaded_file', filename=video.filename) }}" data-youtube="{{ video.youtube_url|default('') }}">
+                <canvas id="internal-ambient-canvas" class="internal-ambient"></canvas>
                 <div class="vf-media" id="vf-media"></div>
 
                 <!-- Big central play overlay -->

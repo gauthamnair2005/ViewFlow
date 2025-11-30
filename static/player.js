@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', function () {
   var bigPlay = document.getElementById('vf-bigplay');
   var overlay = document.getElementById('suggestions-overlay');
   var playNextBtn = document.getElementById('vjs-play-next');
+  var ambientCanvas = document.getElementById('ambient-canvas');
+  var ambientCtx = ambientCanvas ? ambientCanvas.getContext('2d') : null;
+  var internalCanvas = document.getElementById('internal-ambient-canvas');
+  var internalCtx = internalCanvas ? internalCanvas.getContext('2d') : null;
 
   var videoSrc = container.getAttribute('data-video-src') || '';
   var youtube = container.getAttribute('data-youtube') || '';
@@ -67,6 +71,14 @@ document.addEventListener('DOMContentLoaded', function () {
       updateTime();
       // show big play if video hasn't started
       try { if (html5video.currentTime < 0.1 && html5video.paused) showBigPlay(); else hideBigPlay(); } catch(e){}
+      // Initial ambient update
+      if (ambientCtx) setTimeout(() => ambientCtx.drawImage(html5video, 0, 0, ambientCanvas.width, ambientCanvas.height), 500);
+      if (internalCtx) setTimeout(() => internalCtx.drawImage(html5video, 0, 0, internalCanvas.width, internalCanvas.height), 500);
+    });
+
+    html5video.addEventListener('seeked', function() {
+        if (ambientCtx) ambientCtx.drawImage(html5video, 0, 0, ambientCanvas.width, ambientCanvas.height);
+        if (internalCtx) internalCtx.drawImage(html5video, 0, 0, internalCanvas.width, internalCanvas.height);
     });
 
     html5video.addEventListener('timeupdate', function () {
@@ -82,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
       hideReplayBtn(); 
       startProgressTimer(); 
       container.classList.remove('paused');
+      startAmbientLoop();
     });
     html5video.addEventListener('pause', function () { 
       playBtn.textContent = '▶'; 
@@ -141,6 +154,28 @@ document.addEventListener('DOMContentLoaded', function () {
         html5video.pause(); 
       } 
     });
+
+    // Initialize ambient light canvas size
+    if (ambientCanvas) {
+        ambientCanvas.width = 160;
+        ambientCanvas.height = 90;
+    }
+    if (internalCanvas) {
+        internalCanvas.width = 160;
+        internalCanvas.height = 90;
+    }
+
+    function startAmbientLoop() {
+        if ((!ambientCtx && !internalCtx) || !html5video) return;
+        
+        function loop() {
+            if (html5video.paused || html5video.ended) return;
+            if (ambientCtx) ambientCtx.drawImage(html5video, 0, 0, ambientCanvas.width, ambientCanvas.height);
+            if (internalCtx) internalCtx.drawImage(html5video, 0, 0, internalCanvas.width, internalCanvas.height);
+            requestAnimationFrame(loop);
+        }
+        loop();
+    }
   }
 
   function updateTime() {

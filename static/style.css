@@ -315,10 +315,37 @@ footer {
 }
 footer p { margin: 6px 0; }
 
+/* Ambient Light Effect */
+.ambient-light {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.2);
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    filter: blur(60px) saturate(200%);
+    opacity: 0.6;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+.internal-ambient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    filter: blur(30px) brightness(0.7);
+    object-fit: cover;
+    pointer-events: none;
+}
+
 /* ViewFlow custom player styles */
-.vf-player { position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: var(--player-bg); }
-.vf-media { width: 100%; height: auto; background: transparent; display: block; }
-.vf-controls { position: absolute; left: 12px; right: 12px; bottom: 12px; display:flex; gap:10px; align-items:center; background: linear-gradient(180deg, rgba(0,0,0,0), var(--control-bg)); padding:10px; border-radius:8px; backdrop-filter: blur(6px); border: 1px solid var(--border); }
+.vf-player { position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: var(--card-bg); }
+.vf-media { width: 100%; height: auto; background: transparent; display: block; position: relative; z-index: 1; }
+.vf-controls { position: absolute; left: 12px; right: 12px; bottom: 12px; display:flex; gap:10px; align-items:center; background: linear-gradient(180deg, rgba(0,0,0,0), var(--control-bg)); padding:10px; border-radius:8px; backdrop-filter: blur(6px); border: 1px solid var(--border); z-index: 2; }
 .vf-btn { background: var(--btn-bg); color: var(--text-main); border: none; padding: 8px 10px; border-radius:8px; cursor:pointer; font-weight:700; transition: transform 0.12s ease, background 0.12s ease; }
 .vf-btn:hover { transform: translateY(-2px); background: rgba(0,0,0,0.06); }
 .vf-icon { width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:1.05rem; }
