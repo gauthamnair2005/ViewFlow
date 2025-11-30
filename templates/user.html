@@ -22,31 +22,33 @@
 {% if videos|length == 0 %}
     <p style="color:var(--text-sec);">No videos available.</p>
 {% else %}
-    <div class="video-grid">
+    <div class="video-grid channel-grid">
         {% for video in videos %}
         <div class="video-card">
-            <a href="{{ url_for('main.watch', video_id=video.id) }}">
-                <div class="thumbnail">
-                    {% if video.thumbnail %}
-                        <img src="{{ url_for('main.uploaded_file', filename=video.thumbnail) }}" alt="{{ video.title }}" style="width:100%; height:180px; object-fit:cover; border-radius:12px;">
+            <div class="card-main">
+                <a href="{{ url_for('main.watch', video_id=video.id) }}">
+                    <div class="thumbnail">
+                        {% if video.thumbnail %}
+                            <img src="{{ url_for('main.uploaded_file', filename=video.thumbnail) }}" alt="{{ video.title }}" style="width:100%; height:180px; object-fit:cover; border-radius:12px;">
+                        {% else %}
+                            <span class="thumbnail-icon">▶</span>
+                        {% endif %}
+                    </div>
+                </a>
+                <div class="video-info">
+                    {% if channel.profile_pic %}
+                        <img src="{{ url_for('main.uploaded_file', filename=channel.profile_pic) }}" alt="{{ channel.username }}" class="avatar" style="object-fit:cover;">
                     {% else %}
-                        <span class="thumbnail-icon">▶</span>
+                        <div class="avatar">{{ channel.username[0].upper() }}</div>
                     {% endif %}
-                </div>
-            </a>
-            <div class="video-info">
-                {% if channel.profile_pic %}
-                    <img src="{{ url_for('main.uploaded_file', filename=channel.profile_pic) }}" alt="{{ channel.username }}" class="avatar" style="object-fit:cover;">
-                {% else %}
-                    <div class="avatar">{{ channel.username[0].upper() }}</div>
-                {% endif %}
                     <div class="details">
                         <h3>{{ video.title }}</h3>
                         <p style="margin:4px 0 0 0; color:var(--text-sec);">{{ video.views }} views • {{ video.upload_date|format_date }}</p>
                     </div>
+                </div>
             </div>
             {% if current_user.is_authenticated and current_user.id == channel.id %}
-            <div style="display:flex; gap:8px; margin-top:8px;">
+            <div class="video-controls" style="display:flex; gap:8px; margin-top:8px;">
                 
                 <form method="POST" action="{{ url_for('main.delete_video', video_id=video.id) }}">
                     <button class="btn btn-primary">Delete</button>

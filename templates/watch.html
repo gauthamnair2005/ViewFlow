@@ -114,9 +114,9 @@
         <div class="sidebar">
         <h3>Up Next</h3>
         {% for rec in recommended %}
-        <a href="{{ url_for('main.watch', video_id=rec.id) }}" style="display:flex; gap:10px; margin-bottom:15px; align-items:start;">
-            <div style="width:160px; height:90px; background:var(--muted); border-radius:8px; display:flex; justify-content:center; align-items:center;">{% if rec.thumbnail %}<img src="{{ url_for('main.uploaded_file', filename=rec.thumbnail) }}" alt="{{ rec.title }}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">{% else %}▶{% endif %}</div>
-            <div>
+        <a href="{{ url_for('main.watch', video_id=rec.id) }}" style="display:block; margin-bottom:20px; text-align: center;">
+            <div style="width:90%; height:150px; background:var(--muted); border-radius:8px; display:flex; justify-content:center; align-items:center; margin: 0 auto;">{% if rec.thumbnail %}<img src="{{ url_for('main.uploaded_file', filename=rec.thumbnail) }}" alt="{{ rec.title }}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">{% else %}▶{% endif %}</div>
+            <div style="margin-top: 8px;">
                 <h4 style="margin:0; font-size:0.9rem;">{{ rec.title }}</h4>
                 <p style="margin:5px 0 0 0; font-size:0.8rem; color:var(--text-sec);">{{ rec.uploader.display_name or rec.uploader.username }}</p>
             </div>
