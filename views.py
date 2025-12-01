@@ -4,7 +4,7 @@ import random
 import threading
 from flask import Blueprint, render_template, request, redirect, url_for, send_from_directory, flash, current_app, abort, jsonify
 from werkzeug.utils import secure_filename
-from models import db, Video, User, Reaction, Subscription, Comment
+from models import db, Video, User, Reaction, Subscription, Comment, ViewHistory
 from flask_login import current_user, login_required
 from datetime import datetime
 
@@ -32,28 +32,49 @@ def home():
         base_query = base_query.filter_by(is_public=True)
     
     # 1. Latest (Sort by date)
-    latest = base_query.order_by(Video.upload_date.desc()).limit(8).all()
+    latest = base_query.order_by(Video.upload_date.desc()).limit(4).all()
     
     # 2. Trending (Sort by views)
-    trending = base_query.order_by(Video.views.desc()).limit(8).all()
+    trending = base_query.order_by(Video.views.desc()).limit(4).all()
     
-    # 3. For You (Random selection from all available)
-    # We fetch all IDs first to be efficient? Or just fetch all objects if dataset is small.
-    # Assuming small dataset for now as per "prototype" nature.
-    all_videos = base_query.all()
-    for_you = random.sample(all_videos, min(len(all_videos), 8)) if all_videos else []
-    
-    # 4. From <channel_name> (Dynamic)
+    # 3. For You & 4. From Channel (Personalized)
+    for_you = []
     featured_channel = None
     channel_videos = []
-    if all_videos:
-        # Get unique user_ids from the available videos
-        user_ids = list(set(v.user_id for v in all_videos))
-        if user_ids:
-            random_user_id = random.choice(user_ids)
-            featured_channel = User.query.get(random_user_id)
-            if featured_channel:
-                channel_videos = [v for v in all_videos if v.user_id == random_user_id][:8]
+    show_extra_sections = False
+    
+    if current_user.is_authenticated:
+        try:
+            from recommendations import get_recommendations, get_channel_recommendation
+            # Check if user has any history
+            has_history = ViewHistory.query.filter_by(user_id=current_user.id).count() > 0
+            
+            if has_history:
+                for_you = get_recommendations(current_user.id, limit=4)
+                featured_channel, channel_videos = get_channel_recommendation(current_user.id)
+                show_extra_sections = True
+            else:
+                # New user: Fill For You with random/trending, hide others
+                all_public = Video.query.filter_by(is_public=True).all()
+                for_you = random.sample(all_public, min(len(all_public), 4)) if all_public else []
+                show_extra_sections = False
+        except Exception as e:
+            print(f"Recommendation error: {e}")
+            # Fallback on error
+            all_public = Video.query.filter_by(is_public=True).all()
+            for_you = random.sample(all_public, min(len(all_public), 4)) if all_public else []
+    else:
+        # Guest: Fill For You with random, hide others
+        all_public = Video.query.filter_by(is_public=True).all()
+        for_you = random.sample(all_public, min(len(all_public), 4)) if all_public else []
+        show_extra_sections = False
+
+    # If we are hiding extra sections, clear them
+    if not show_extra_sections:
+        latest = []
+        trending = []
+        featured_channel = None
+        channel_videos = []
 
     return render_template('home.html', title='Home', 
                            for_you=for_you, 
@@ -75,17 +96,35 @@ def watch(video_id):
         # increment views for non-owner viewers
         if not (current_user.is_authenticated and current_user.id == video.user_id):
             video.views = (video.views or 0) + 1
+            # Record history if authenticated
+            if current_user.is_authenticated:
+                vh = ViewHistory(user_id=current_user.id, video_id=video.id)
+                db.session.add(vh)
             db.session.commit()
     except Exception:
         db.session.rollback()
     
-    # recommended: only show public videos or owner's own videos
-    if current_user and current_user.is_authenticated:
-        recommended = Video.query.filter(
-            (Video.id != video_id) & ((Video.is_public == True) | (Video.user_id == current_user.id))
-        ).order_by(db.func.random()).limit(5).all()
-    else:
-        recommended = Video.query.filter(Video.id != video_id, Video.is_public == True).order_by(db.func.random()).limit(5).all()
+    # recommended: use ML engine for logged in users, else fallback
+    recommended = []
+    if current_user.is_authenticated:
+        try:
+            from recommendations import get_recommendations
+            recommended = get_recommendations(current_user.id, limit=10, exclude_video_ids=[video_id])
+        except Exception:
+            pass
+            
+    # Fallback if empty (new user or guest)
+    if not recommended:
+        # Try same category first
+        base_q = Video.query.filter(Video.id != video_id, Video.is_public == True)
+        if video.category:
+            recommended = base_q.filter_by(category=video.category).order_by(db.func.random()).limit(5).all()
+        
+        # If still not enough, fill with random
+        if len(recommended) < 5:
+            exclude = [v.id for v in recommended] + [video_id]
+            others = Video.query.filter(~Video.id.in_(exclude), Video.is_public == True).order_by(db.func.random()).limit(5 - len(recommended)).all()
+            recommended.extend(others)
     
     # compute reactions counts
     likes = Reaction.query.filter_by(video_id=video_id, type=1).count()

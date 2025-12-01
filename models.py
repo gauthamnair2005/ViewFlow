@@ -60,3 +60,13 @@ class Comment(db.Model):
     user = db.relationship('User', backref='comments', lazy=True)
     video = db.relationship('Video', backref=db.backref('comments', lazy=True, cascade="all, delete-orphan"))
 
+
+class ViewHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    video_id = db.Column(db.Integer, db.ForeignKey('video.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref='view_history', lazy=True)
+    video = db.relationship('Video', backref='view_events', lazy=True)
+

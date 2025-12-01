@@ -9,6 +9,8 @@ from werkzeug.utils import secure_filename
 from jinja2 import DictLoader
 import cv2
 import random
+from collections import Counter, defaultdict
+import math
 
 __version__ = '0.6.1'
 
@@ -69,6 +71,8 @@ class Video(db.Model):
     description = db.Column(db.Text, nullable=True)
     filename = db.Column(db.String(100), nullable=False)
     thumbnail = db.Column(db.String(200), nullable=True)
+    category = db.Column(db.String(100), nullable=True)
+    tags = db.Column(db.String(500), nullable=True)
     views = db.Column(db.Integer, default=0)
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -99,6 +103,15 @@ class Comment(db.Model):
     
     user = db.relationship('User', backref='comments', lazy=True)
     video = db.relationship('Video', backref=db.backref('comments', lazy=True, cascade="all, delete-orphan"))
+
+class ViewHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    video_id = db.Column(db.Integer, db.ForeignKey('video.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref='view_history', lazy=True)
+    video = db.relationship('Video', backref='view_events', lazy=True)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -155,6 +168,142 @@ def generate_thumbnail(video_path, output_path):
         return None
 
 # ==========================================
+# RECOMMENDATION ENGINE
+# ==========================================
+
+def get_user_profile_vector(user_id):
+    """
+    Builds a weighted feature vector for the user based on watch history.
+    Features: Categories, Tags, Channels.
+    Weights: Recency (Decay), Frequency (Replays), Context (Last 2 videos).
+    """
+    # Get last 50 views for long-term profile
+    history = ViewHistory.query.filter_by(user_id=user_id).order_by(ViewHistory.timestamp.desc()).limit(50).all()
+    
+    if not history:
+        return None
+
+    # 1. Analyze Replays (Frequency)
+    video_counts = Counter([h.video_id for h in history])
+    
+    # 2. Build User Profile Vector
+    user_vector = defaultdict(float)
+    
+    # Hyperparameters
+    WEIGHT_CATEGORY = 3.0
+    WEIGHT_TAG = 1.0
+    WEIGHT_CHANNEL = 2.0
+    DECAY_FACTOR = 0.95  # 5% decay per step back in history
+    
+    # Short-term context (Last 2 videos) - "Current Mood"
+    last_2_ids = [h.video_id for h in history[:2]]
+    
+    for idx, h in enumerate(history):
+        if not h.video:
+            continue
+            
+        # Time Decay: Recent views have higher weight
+        recency_weight = pow(DECAY_FACTOR, idx)
+        
+        # Replay Multiplier: Boost if watched multiple times
+        # Logarithmic scaling to prevent spamming from dominating
+        replay_count = video_counts[h.video_id]
+        replay_mult = 1.0 + math.log(replay_count) if replay_count > 1 else 1.0
+        
+        # Short-term Context Boost: Massive boost for the immediate previous videos
+        context_boost = 2.5 if h.video_id in last_2_ids else 1.0
+        
+        # Final Event Weight
+        final_weight = recency_weight * replay_mult * context_boost
+        
+        # Feature Extraction & Weighting
+        if h.video.category:
+            user_vector[f"cat:{h.video.category}"] += WEIGHT_CATEGORY * final_weight
+        
+        if h.video.tags:
+            # tags are comma separated
+            t_list = [t.strip().lower() for t in h.video.tags.split(',') if t.strip()]
+            for tag in t_list:
+                user_vector[f"tag:{tag}"] += WEIGHT_TAG * final_weight
+                
+        user_vector[f"chan:{h.video.user_id}"] += WEIGHT_CHANNEL * final_weight
+
+    return user_vector
+
+def get_recommendations(user_id, limit=4, exclude_video_ids=None):
+    if not user_id:
+        return []
+    
+    user_vector = get_user_profile_vector(user_id)
+    
+    if not user_vector:
+        return []
+
+    # Fetch candidate videos (public videos)
+    query = Video.query.filter_by(is_public=True)
+    
+    if exclude_video_ids:
+        query = query.filter(~Video.id.in_(exclude_video_ids))
+    
+    candidates = query.all()
+    
+    scored_videos = []
+    for vid in candidates:
+        score = 0
+        
+        # Dot Product: User Vector • Video Feature Vector
+        
+        # Category Match
+        if vid.category:
+            score += user_vector.get(f"cat:{vid.category}", 0)
+        
+        # Tag Match
+        if vid.tags:
+            v_tags = [t.strip().lower() for t in vid.tags.split(',') if t.strip()]
+            for t in v_tags:
+                score += user_vector.get(f"tag:{t}", 0)
+        
+        # Channel Match
+        score += user_vector.get(f"chan:{vid.user_id}", 0)
+        
+        if score > 0:
+            # Add a tiny random noise to break ties and add serendipity
+            score += random.uniform(0, 0.5)
+            scored_videos.append((score, vid))
+            
+    # Sort by score desc
+    scored_videos.sort(key=lambda x: x[0], reverse=True)
+    
+    return [v for s, v in scored_videos[:limit]]
+
+def get_channel_recommendation(user_id):
+    user_vector = get_user_profile_vector(user_id)
+    if not user_vector:
+        return None, []
+        
+    # Extract channel scores from the vector
+    channel_scores = {}
+    for key, score in user_vector.items():
+        if key.startswith("chan:"):
+            chan_id = int(key.split(":")[1])
+            channel_scores[chan_id] = score
+            
+    if not channel_scores:
+        return None, []
+        
+    # Get top channel by score
+    top_channel_id = max(channel_scores, key=channel_scores.get)
+    channel = User.query.get(top_channel_id)
+    
+    if not channel:
+        return None, []
+    
+    # Get videos from this channel
+    videos = Video.query.filter_by(user_id=top_channel_id, is_public=True).order_by(Video.upload_date.desc()).limit(4).all()
+    
+    return channel, videos
+
+# ==========================================
 # BLUEPRINTS
 # ==========================================
 
@@ -207,6 +356,18 @@ def init_db():
                 if 'thumbnail' not in video_cols:
                     try:
                         conn.execute(text("ALTER TABLE video ADD COLUMN thumbnail VARCHAR(200)"))
+                        conn.commit()
+                    except Exception:
+                        pass
+                if 'category' not in video_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE video ADD COLUMN category VARCHAR(100)"))
+                        conn.commit()
+                    except Exception:
+                        pass
+                if 'tags' not in video_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE video ADD COLUMN tags VARCHAR(500)"))
                         conn.commit()
                     except Exception:
                         pass
@@ -269,14 +430,63 @@ init_db()
 
 @main_bp.route('/')
 def home():
-    # Show public videos to everyone; owners see their own videos too
-    if current_user and current_user.is_authenticated:
-        videos = Video.query.filter(
-            (Video.is_public == True) | (Video.user_id == current_user.id)
-        ).order_by(Video.upload_date.desc()).all()
+    # Base query for visible videos
+    base_query = Video.query
+    if current_user.is_authenticated:
+        base_query = base_query.filter((Video.is_public == True) | (Video.user_id == current_user.id))
     else:
-        videos = Video.query.filter_by(is_public=True).order_by(Video.upload_date.desc()).all()
-    return render_template('home.html', title="Home", videos=videos)
+        base_query = base_query.filter_by(is_public=True)
+    
+    # 1. Latest (Sort by date)
+    latest = base_query.order_by(Video.upload_date.desc()).limit(4).all()
+    
+    # 2. Trending (Sort by views)
+    trending = base_query.order_by(Video.views.desc()).limit(4).all()
+    
+    # 3. For You & 4. From Channel (Personalized)
+    for_you = []
+    featured_channel = None
+    channel_videos = []
+    show_extra_sections = False
+    
+    if current_user.is_authenticated:
+        try:
+            # Check if user has any history
+            has_history = ViewHistory.query.filter_by(user_id=current_user.id).count() > 0
+            
+            if has_history:
+                for_you = get_recommendations(current_user.id, limit=4)
+                featured_channel, channel_videos = get_channel_recommendation(current_user.id)
+                show_extra_sections = True
+            else:
+                # New user: Fill For You with random/trending, hide others
+                all_public = Video.query.filter_by(is_public=True).all()
+                for_you = random.sample(all_public, min(len(all_public), 4)) if all_public else []
+                show_extra_sections = False
+        except Exception as e:
+            print(f"Recommendation error: {e}")
+            # Fallback on error
+            all_public = Video.query.filter_by(is_public=True).all()
+            for_you = random.sample(all_public, min(len(all_public), 4)) if all_public else []
+    else:
+        # Guest: Fill For You with random, hide others
+        all_public = Video.query.filter_by(is_public=True).all()
+        for_you = random.sample(all_public, min(len(all_public), 4)) if all_public else []
+        show_extra_sections = False
+
+    # If we are hiding extra sections, clear them
+    if not show_extra_sections:
+        latest = []
+        trending = []
+        featured_channel = None
+        channel_videos = []
+
+    return render_template('home.html', title='Home', 
+                           for_you=for_you, 
+                           latest=latest, 
+                           trending=trending, 
+                           featured_channel=featured_channel, 
+                           channel_videos=channel_videos)
 
 
 @main_bp.route('/search')
@@ -396,6 +606,8 @@ def upload():
         file = request.files['file']
         title = request.form.get('title')
         description = request.form.get('description')
+        category = request.form.get('category')
+        tags = request.form.get('tags')
         
         if file.filename == '':
             flash('No selected file')
@@ -418,7 +630,9 @@ def upload():
                 description=description,
                 filename=save_name,
                 thumbnail=thumbnail_name if os.path.exists(thumbnail_path) else None,
-                user_id=current_user.id
+                user_id=current_user.id,
+                category=category,
+                tags=tags
             )
             db.session.add(new_video)
             db.session.commit()
@@ -442,6 +656,10 @@ def watch(video_id):
         if not is_owner:
             old_views = video.views or 0
             video.views = old_views + 1
+            # Record history if authenticated
+            if current_user.is_authenticated:
+                vh = ViewHistory(user_id=current_user.id, video_id=video.id)
+                db.session.add(vh)
             db.session.commit()
             print(f"[VIEW DEBUG] Views incremented: {old_views} -> {video.views}")
         else:
@@ -450,13 +668,26 @@ def watch(video_id):
         print(f"[VIEW DEBUG] Error: {e}")
         db.session.rollback()
 
-    # recommended: only show public videos or owner's own videos
-    if current_user and current_user.is_authenticated:
-        recommended = Video.query.filter(
-            (Video.id != video_id) & ((Video.is_public == True) | (Video.user_id == current_user.id))
-        ).order_by(db.func.random()).limit(5).all()
-    else:
-        recommended = Video.query.filter(Video.id != video_id, Video.is_public == True).order_by(db.func.random()).limit(5).all()
+    # recommended: use ML engine for logged in users, else fallback
+    recommended = []
+    if current_user.is_authenticated:
+        try:
+            recommended = get_recommendations(current_user.id, limit=10, exclude_video_ids=[video_id])
+        except Exception:
+            pass
+            
+    # Fallback if empty (new user or guest)
+    if not recommended:
+        # Try same category first
+        base_q = Video.query.filter(Video.id != video_id, Video.is_public == True)
+        if video.category:
+            recommended = base_q.filter_by(category=video.category).order_by(db.func.random()).limit(5).all()
+        
+        # If still not enough, fill with random
+        if len(recommended) < 5:
+            exclude = [v.id for v in recommended] + [video_id]
+            others = Video.query.filter(~Video.id.in_(exclude), Video.is_public == True).order_by(db.func.random()).limit(5 - len(recommended)).all()
+            recommended.extend(others)
 
     # compute reactions counts
     likes = Reaction.query.filter_by(video_id=video_id, type=1).count()
