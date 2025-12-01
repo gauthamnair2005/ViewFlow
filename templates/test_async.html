@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h2>Async Test Page</h2>
+    <p>This is a test page for async functionality.</p>
+    <div id="async-result"></div>
+    <button id="test-btn" class="btn btn-primary">Run Test</button>
+    
+    <script>
+        document.getElementById('test-btn').addEventListener('click', function() {
+            document.getElementById('async-result').innerText = 'Test running...';
+            setTimeout(function() {
+                document.getElementById('async-result').innerText = 'Test completed successfully!';
+            }, 1000);
+        });
+    </script>
+{% endblock %}

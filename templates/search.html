@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h2 style="margin-bottom: 20px;">Search Results for "{{ query }}"</h2>
+    {% if videos|length == 0 %}
+        <div style="text-align: center; padding: 50px;">
+            <h3>No videos found</h3>
+            <p>Try different keywords or check your spelling.</p>
+        </div>
+    {% else %}
+        <section class="recommended">
+            <div class="recommended-grid">
+                {% for video in videos %}
+                <article class="recommended-card">
+                    <a href="{{ url_for('main.watch', video_id=video.id) }}">
+                        <div class="rec-thumb">
+                            {% if video.thumbnail %}
+                                <img src="{{ url_for('main.uploaded_file', filename=video.thumbnail) }}" alt="{{ video.title }}">
+                            {% else %}
+                                <div class="thumb-placeholder">▶</div>
+                            {% endif %}
+                        </div>
+                        <div class="rec-meta">
+                            <h3 class="rec-title">{{ video.title }}</h3>
+                            <p class="rec-channel"><a href="{{ url_for('main.user_profile', username=video.uploader.username) }}">{{ video.uploader.display_name or video.uploader.username }}</a></p>
+                            <p class="rec-stats">{{ video.views }} views • {{ video.upload_date|format_date }}</p>
+                        </div>
+                    </a>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+{% endblock %}
