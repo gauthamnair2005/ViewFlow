@@ -995,6 +995,16 @@ body.theatre-mode .video-meta {
     opacity: 1;
 }
 
+/* In fullscreen, disable default hover (so controls hide when idle) */
+.vf-player.is-fullscreen:hover .vf-controls {
+    opacity: 0;
+}
+
+/* But show if active (show-controls class) */
+.vf-player.is-fullscreen.show-controls .vf-controls {
+    opacity: 1;
+}
+
 /* Big play button: only show when paused/ended or on hover */
 .vf-player .vf-bigplay {
     opacity: 0;

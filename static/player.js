@@ -381,10 +381,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // update fullscreen icon on change
   document.addEventListener('fullscreenchange', function() {
+    showControls();
     if (document.fullscreenElement) {
+      container.classList.add('is-fullscreen');
       fullscreenBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>';
       fullscreenBtn.title = 'Exit fullscreen';
     } else {
+      container.classList.remove('is-fullscreen');
+      container.style.cursor = 'default';
       fullscreenBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>';
       fullscreenBtn.title = 'Fullscreen';
     }
@@ -425,10 +429,17 @@ document.addEventListener('DOMContentLoaded', function () {
   // Auto-hide controls functionality
   function showControls() {
     container.classList.add('show-controls');
+    container.style.cursor = 'default';
     if (controlsHideTimer) clearTimeout(controlsHideTimer);
     controlsHideTimer = setTimeout(function() {
-      if (!container.matches(':hover')) {
-        container.classList.remove('show-controls');
+      // Don't hide if hovering the control bar itself
+      var controls = document.getElementById('vf-controls');
+      if (controls && controls.matches(':hover')) return;
+
+      container.classList.remove('show-controls');
+      // Hide cursor in fullscreen
+      if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+        container.style.cursor = 'none';
       }
     }, 3000);
   }
