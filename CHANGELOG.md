@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.3] - 2025-12-01
+
+### Fixed
+- Fixed asynchronous actions (like, dislike, subscribe) causing page reloads.
+- Fixed issue where `form.action` was shadowed by input named "action", breaking AJAX requests.
+- Improved AJAX detection in backend to support `ajax=1` query parameter.
+- Updated `base.html` to reference the correct `async_actions.js` script.
+
 ## [0.5.2] - 2025-12-01
 
 ### Fixed

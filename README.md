@@ -1,6 +1,6 @@
 # ViewFlow
 
-**Version:** 0.5.2
+**Version:** 0.5.3
 
 ViewFlow is a lightweight Flask-based video sharing prototype used for local development and UI iteration. It provides a minimal video upload, playback (HTML5 + YouTube iframe), channel pages, simple subscription and like/dislike reactions, and a custom themeable player UI.
 
