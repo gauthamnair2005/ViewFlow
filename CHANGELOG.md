@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.4] - 2025-12-01
+
+### Changed
+- Replaced all UI emojis with SVG icons for better visual consistency and scalability.
+  - Player controls (Play, Pause, Mute, Volume, Theatre, Fullscreen, Replay).
+  - Theme toggle (Sun/Moon).
+  - Interaction buttons (Like, Dislike).
+  - Added Bell icon to Subscribe button.
+  - Video thumbnail placeholders.
+
 ## [0.5.3] - 2025-12-01
 
 ### Fixed

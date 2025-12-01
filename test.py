@@ -10,7 +10,7 @@ from jinja2 import DictLoader
 import cv2
 import random
 
-__version__ = '0.5.3'
+__version__ = '0.5.4'
 
 # ==========================================
 # CONFIGURATION
