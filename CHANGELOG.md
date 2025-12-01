@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.1] - 2025-12-01
+
+### Changed
+- Increased maximum video upload size limit to 16GB (from 2GB).
+
 ## [0.5.0] - 2025-12-01
 
 ### Fixed
