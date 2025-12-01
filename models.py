@@ -47,3 +47,14 @@ class Reaction(db.Model):
     type = db.Column(db.Integer, nullable=False)  # 1 for like, -1 for dislike
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    date_posted = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    video_id = db.Column(db.Integer, db.ForeignKey('video.id'), nullable=False)
+    
+    user = db.relationship('User', backref='comments', lazy=True)
+    video = db.relationship('Video', backref=db.backref('comments', lazy=True, cascade="all, delete-orphan"))
+

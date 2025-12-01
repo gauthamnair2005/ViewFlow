@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const forms = document.querySelectorAll('form.js-async-form');
     console.log('Found', forms.length, 'async forms');
     
-    forms.forEach(form=>{
+    function attachHandler(form) {
         console.log('Attaching handler to form with action:', form.action, 'data-action:', form.dataset.action);
         form.addEventListener('submit', async (e)=>{
             e.preventDefault();
@@ -95,6 +95,54 @@ document.addEventListener('DOMContentLoaded', ()=>{
                     }
                     const subsCountEl = document.getElementById('subs-count');
                     if(subsCountEl && data.subs_count !== undefined) subsCountEl.textContent = data.subs_count;
+                } else if(action === 'comment'){
+                    if(data.success && data.comment){
+                        const list = document.getElementById('comments-list');
+                        const div = document.createElement('div');
+                        div.className = 'comment';
+                        div.id = 'comment-' + data.comment.id;
+                        div.style.cssText = 'display:flex; gap:10px; margin-bottom:20px; animation: fadeIn 0.3s ease;';
+                        
+                        let avatarHtml = '';
+                        if(data.comment.profile_pic){
+                            avatarHtml = `<img src="${data.comment.profile_pic}" class="avatar" style="width:40px; height:40px; object-fit:cover;">`;
+                        } else {
+                            avatarHtml = `<div class="avatar" style="width:40px; height:40px;">${data.comment.initial}</div>`;
+                        }
+                        
+                        div.innerHTML = `
+                            <a href="${data.comment.user_url}">
+                                ${avatarHtml}
+                            </a>
+                            <div style="flex:1;">
+                                <div style="margin-bottom:4px;">
+                                    <a href="${data.comment.user_url}" style="font-weight:bold; font-size:0.9rem; margin-right:8px;">${data.comment.user}</a>
+                                    <span style="color:var(--text-sec); font-size:0.8rem;">${data.comment.date}</span>
+                                </div>
+                                <p style="margin:0; font-size:0.95rem;">${data.comment.content}</p>
+                            </div>
+                            <div>
+                                <form method="POST" action="/comment/${data.comment.id}/delete" class="js-async-form" data-action="delete-comment">
+                                    <button type="submit" class="btn" style="padding:4px 8px; font-size:0.8rem; opacity:0.7;" title="Delete">✕</button>
+                                </form>
+                            </div>
+                        `;
+                        
+                        list.insertBefore(div, list.firstChild);
+                        form.reset();
+                        
+                        // Re-attach handler to the new delete form
+                        const newForm = div.querySelector('form');
+                        if(newForm) attachHandler(newForm);
+                    }
+                } else if(action === 'delete-comment'){
+                    if(data.success){
+                        const commentDiv = form.closest('.comment');
+                        if(commentDiv){
+                            commentDiv.style.opacity = '0';
+                            setTimeout(() => commentDiv.remove(), 300);
+                        }
+                    }
                 } else {
                     // generic: if server returned redirect target, follow it
                     if(data.redirect){ window.location.href = data.redirect; }
@@ -103,5 +151,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 console.error('Async action error', err);
             }
         });
-    });
+    }
+
+    forms.forEach(form => attachHandler(form));
 });

@@ -4,7 +4,7 @@ import random
 import threading
 from flask import Blueprint, render_template, request, redirect, url_for, send_from_directory, flash, current_app, abort, jsonify
 from werkzeug.utils import secure_filename
-from models import db, Video, User, Reaction, Subscription
+from models import db, Video, User, Reaction, Subscription, Comment
 from flask_login import current_user, login_required
 from datetime import datetime
 
@@ -62,6 +62,9 @@ def watch(video_id):
     likes = Reaction.query.filter_by(video_id=video_id, type=1).count()
     dislikes = Reaction.query.filter_by(video_id=video_id, type=-1).count()
     
+    # fetch comments
+    comments = Comment.query.filter_by(video_id=video_id).order_by(Comment.date_posted.desc()).all()
+    
     is_liked = False
     is_disliked = False
     is_subscribed = False
@@ -75,7 +78,7 @@ def watch(video_id):
     
     return render_template('watch.html', title=video.title, video=video, recommended=recommended,
                            likes=likes, dislikes=dislikes, is_liked=is_liked, is_disliked=is_disliked,
-                           is_subscribed=is_subscribed)
+                           is_subscribed=is_subscribed, comments=comments)
 
 
 @main_bp.route('/uploads/<path:filename>')
@@ -331,6 +334,70 @@ def react_video(video_id):
         return jsonify({'likes': likes, 'dislikes': dislikes, 'is_liked': bool(r and r.type == 1), 'is_disliked': bool(r and r.type == -1)})
     
     return redirect(request.referrer or url_for('main.watch', video_id=video_id))
+
+@main_bp.route('/video/<int:video_id>/comment', methods=['POST'])
+def add_comment(video_id):
+    if not current_user.is_authenticated:
+        if is_ajax(request):
+            return jsonify({'error': 'Not authenticated', 'redirect': url_for('auth.login')}), 401
+        flash('Please log in to comment')
+        return redirect(url_for('auth.login'))
+    
+    video = Video.query.get_or_404(video_id)
+    content = request.form.get('content')
+    
+    if request.is_json:
+        data = request.get_json()
+        if data:
+            content = data.get('content')
+            
+    if not content or not content.strip():
+        if is_ajax(request):
+            return jsonify({'error': 'Comment cannot be empty'}), 400
+        flash('Comment cannot be empty')
+        return redirect(url_for('main.watch', video_id=video_id))
+        
+    comment = Comment(content=content.strip(), user_id=current_user.id, video_id=video.id)
+    db.session.add(comment)
+    db.session.commit()
+    
+    if is_ajax(request):
+        return jsonify({
+            'success': True,
+            'comment': {
+                'id': comment.id,
+                'content': comment.content,
+                'user': current_user.display_name or current_user.username,
+                'user_url': url_for('main.user_profile', username=current_user.username),
+                'profile_pic': url_for('main.uploaded_file', filename=current_user.profile_pic) if current_user.profile_pic else None,
+                'initial': current_user.username[0].upper(),
+                'date': format_date(comment.date_posted)
+            }
+        })
+        
+    flash('Comment added')
+    return redirect(url_for('main.watch', video_id=video_id))
+
+@main_bp.route('/comment/<int:comment_id>/delete', methods=['POST'])
+@login_required
+def delete_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    # Allow deletion if user is the commenter OR the video owner
+    if comment.user_id != current_user.id and comment.video.user_id != current_user.id:
+        if is_ajax(request):
+            return jsonify({'error': 'Not authorized'}), 403
+        flash('Not authorized')
+        return redirect(url_for('main.watch', video_id=comment.video_id))
+        
+    video_id = comment.video_id
+    db.session.delete(comment)
+    db.session.commit()
+    
+    if is_ajax(request):
+        return jsonify({'success': True})
+        
+    flash('Comment deleted')
+    return redirect(url_for('main.watch', video_id=video_id))
 
 @main_bp.route('/search')
 def search():
