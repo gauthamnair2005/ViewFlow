@@ -237,10 +237,13 @@ def user_profile(username):
     return render_template('user.html', title=user.display_name or user.username, channel=user, videos=videos, subs_count=subs_count, is_subscribed=is_subscribed)
 
 
+def is_ajax(request):
+    return request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.args.get('ajax')
+
 @main_bp.route('/subscribe/<int:channel_id>', methods=['POST'])
 def subscribe(channel_id):
     if not current_user.is_authenticated:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if is_ajax(request):
             return jsonify({'error': 'login_required', 'redirect': url_for('auth.login')}), 401
         flash('Please sign in to subscribe')
         return redirect(request.referrer or url_for('auth.login'))
@@ -256,7 +259,7 @@ def subscribe(channel_id):
             db.session.delete(existing)
             db.session.commit()
             flash('Unsubscribed')
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if is_ajax(request):
                 subs_count = Subscription.query.filter_by(channel_id=channel_id).count()
                 return jsonify({'subscribed': False, 'subs_count': subs_count})
         except Exception:
@@ -268,7 +271,7 @@ def subscribe(channel_id):
             db.session.add(sub)
             db.session.commit()
             flash('Subscribed')
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if is_ajax(request):
                 subs_count = Subscription.query.filter_by(channel_id=channel_id).count()
                 return jsonify({'subscribed': True, 'subs_count': subs_count})
         except Exception:
@@ -281,15 +284,19 @@ def subscribe(channel_id):
 def react_video(video_id):
     # Check authentication first for AJAX requests
     if not current_user.is_authenticated:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if is_ajax(request):
             return jsonify({'error': 'Not authenticated', 'redirect': url_for('auth.login')}), 401
         flash('Please log in to react to videos')
         return redirect(url_for('auth.login'))
     
     video = Video.query.get_or_404(video_id)
     action = request.form.get('action')
+    if not action and request.is_json:
+        data = request.get_json()
+        if data:
+            action = data.get('action')
     if action not in ('like', 'dislike'):
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if is_ajax(request):
             return jsonify({'error': 'Invalid action'}), 400
         flash('Invalid reaction')
         return redirect(request.referrer or url_for('main.watch', video_id=video_id))
@@ -317,7 +324,7 @@ def react_video(video_id):
         flash('Failed to record reaction')
     
     # For AJAX requests return JSON with updated counts and state
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if is_ajax(request):
         likes = Reaction.query.filter_by(video_id=video.id, type=1).count()
         dislikes = Reaction.query.filter_by(video_id=video.id, type=-1).count()
         r = Reaction.query.filter_by(video_id=video.id, user_id=current_user.id).first()

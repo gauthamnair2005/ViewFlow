@@ -10,12 +10,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
             e.preventDefault();
             console.log('Form submitted, prevented default');
             const action = form.dataset.action || '';
-            const url = form.action;
+            let url = form.getAttribute('action');
+            // Append ajax=1 to URL to ensure backend detects it even if headers are stripped
+            if(url.indexOf('?') === -1) url += '?ajax=1';
+            else url += '&ajax=1';
+            
             const formData = new FormData(form);
             console.log('Making async request to:', url, 'with action:', action);
             try{
                 const resp = await fetch(url, {
-                    method: form.method || 'POST',
+                    method: form.getAttribute('method') || 'POST',
                     body: formData,
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
@@ -24,9 +28,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 });
                 console.log('Response status:', resp.status, 'OK:', resp.ok);
                 if(!resp.ok){
-                    // fallback: reload on failure
-                    console.warn('Async action failed, reloading', resp.status);
-                    window.location.reload();
+                    // fallback: log error but do not reload to avoid disruption
+                    console.warn('Async action failed', resp.status);
                     return;
                 }
                 const data = await resp.json().catch((err)=>{
@@ -35,8 +38,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 });
                 console.log('Response data:', data);
                 if(!data){
-                    console.warn('No data returned, reloading');
-                    window.location.reload();
+                    console.warn('No data returned');
                     return;
                 }
                 // Handle known action responses
@@ -99,7 +101,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 }
             }catch(err){
                 console.error('Async action error', err);
-                window.location.reload();
             }
         });
     });
