@@ -24,14 +24,43 @@ def format_date(date):
 
 @main_bp.route('/')
 def home():
-    # Show public videos to everyone; owners see their own videos too
-    if current_user and current_user.is_authenticated:
-        videos = Video.query.filter(
-            (Video.is_public == True) | (Video.user_id == current_user.id)
-        ).order_by(Video.upload_date.desc()).all()
+    # Base query for visible videos
+    base_query = Video.query
+    if current_user.is_authenticated:
+        base_query = base_query.filter((Video.is_public == True) | (Video.user_id == current_user.id))
     else:
-        videos = Video.query.filter_by(is_public=True).order_by(Video.upload_date.desc()).all()
-    return render_template('home.html', title='Home', videos=videos)
+        base_query = base_query.filter_by(is_public=True)
+    
+    # 1. Latest (Sort by date)
+    latest = base_query.order_by(Video.upload_date.desc()).limit(8).all()
+    
+    # 2. Trending (Sort by views)
+    trending = base_query.order_by(Video.views.desc()).limit(8).all()
+    
+    # 3. For You (Random selection from all available)
+    # We fetch all IDs first to be efficient? Or just fetch all objects if dataset is small.
+    # Assuming small dataset for now as per "prototype" nature.
+    all_videos = base_query.all()
+    for_you = random.sample(all_videos, min(len(all_videos), 8)) if all_videos else []
+    
+    # 4. From <channel_name> (Dynamic)
+    featured_channel = None
+    channel_videos = []
+    if all_videos:
+        # Get unique user_ids from the available videos
+        user_ids = list(set(v.user_id for v in all_videos))
+        if user_ids:
+            random_user_id = random.choice(user_ids)
+            featured_channel = User.query.get(random_user_id)
+            if featured_channel:
+                channel_videos = [v for v in all_videos if v.user_id == random_user_id][:8]
+
+    return render_template('home.html', title='Home', 
+                           for_you=for_you, 
+                           latest=latest, 
+                           trending=trending, 
+                           featured_channel=featured_channel, 
+                           channel_videos=channel_videos)
 
 
 @main_bp.route('/watch/<int:video_id>')

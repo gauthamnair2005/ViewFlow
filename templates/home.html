@@ -1,12 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
-    <h2 style="margin-bottom: 20px;">Recommended</h2>
-    {% if videos|length == 0 %}
-        <div style="text-align: center; padding: 50px;">
-            <h3>No videos yet!</h3>
-            <p>Be the first to upload content to ViewFlow.</p>
-        </div>
-    {% else %}
+    {% macro video_section(title, videos) %}
+        {% if videos %}
+        <h2 style="margin-bottom: 20px; margin-top: 30px;">{{ title }}</h2>
         <section class="recommended">
             <div class="recommended-grid">
                 {% for video in videos %}
@@ -21,7 +17,7 @@
                         </div>
                         <div class="rec-meta">
                             <h3 class="rec-title">{{ video.title }}</h3>
-                            <p class="rec-channel"><a href="{{ url_for('main.user_profile', username=video.uploader.username) }}">{{ video.uploader.display_name or video.uploader.username }}</a></p>
+                            <p class="rec-channel">{{ video.uploader.display_name or video.uploader.username }}</p>
                             <p class="rec-stats">{{ video.views }} views • {{ video.upload_date|format_date }}</p>
                         </div>
                     </a>
@@ -29,5 +25,20 @@
                 {% endfor %}
             </div>
         </section>
+        {% endif %}
+    {% endmacro %}
+
+    {% if not for_you and not latest and not trending %}
+        <div style="text-align: center; padding: 50px;">
+            <h3>No videos yet!</h3>
+            <p>Be the first to upload content to ViewFlow.</p>
+        </div>
+    {% else %}
+        {{ video_section('For You', for_you) }}
+        {{ video_section('Latest', latest) }}
+        {{ video_section('Trending', trending) }}
+        {% if featured_channel %}
+            {{ video_section('From ' ~ (featured_channel.display_name or featured_channel.username), channel_videos) }}
+        {% endif %}
     {% endif %}
 {% endblock %}
