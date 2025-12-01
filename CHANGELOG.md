@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.0] - 2025-12-01
+
+### Added
+- **Machine Learning Recommendation Engine**
+  - Implemented a content-based filtering algorithm to personalize video feeds.
+  - **Vector-Based Profiling**: Builds weighted user profile vectors based on watch history (Categories, Tags, Channels).
+  - **Dynamic Weighting**:
+    - **Recency Decay**: Recent views are weighted higher (5% decay per step).
+    - **Replay Boosting**: Repeated views increase feature weights logarithmically.
+    - **Short-Term Context**: Immediate last 2 videos get a massive 2.5x weight boost to capture "current mood".
+  - **Similarity Scoring**: Recommendations are generated via dot product similarity between user vectors and video attributes.
+  - **Homepage Sections**:
+    - **For You**: Personalized recommendations for logged-in users; random selection for guests.
+    - **Latest**: Most recent uploads.
+    - **Trending**: Most viewed videos.
+    - **From <Channel>**: Videos from a channel the user watches frequently.
+  - **Up Next**: "Watch" page suggestions are now powered by the ML engine for logged-in users.
+
+### Changed
+- **Homepage Redesign**:
+  - Replaced single "Recommended" list with categorized sections ("For You", "Latest", "Trending", "From Channel").
+  - Sections are dynamically hidden if empty or not applicable (e.g., for new users).
+  - Limited each section to 4 videos for a cleaner layout.
+- **Database Schema**:
+  - Added `category` and `tags` columns to `Video` model.
+  - Added `ViewHistory` model to track user viewing activity with timestamps.
+  - Updated `init_db` to automatically migrate schema for new columns.
+- **Upload Flow**:
+  - Added **Category** dropdown and **Tags** input to the video upload form.
+
 ## [0.6.1] - 2025-12-01
 
 ### Fixed

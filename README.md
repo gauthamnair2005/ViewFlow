@@ -1,53 +1,78 @@
 # ViewFlow
 
-**Version:** 0.6.1
+**Version:** 0.7.0
 
-ViewFlow is a lightweight Flask-based video sharing prototype used for local development and UI iteration. It provides a minimal video upload, playback (HTML5 + YouTube iframe), channel pages, simple subscription and like/dislike reactions, and a custom themeable player UI.
+ViewFlow is a modern, lightweight video sharing platform prototype built with Flask. It features a custom-built video player, a sophisticated recommendation engine, and a sleek, theme-aware user interface.
 
-This repository is intended as a development playground, not a production-ready system.
+## 🚀 Key Features
 
-## Features
-- Upload and serve local video files (stored in `uploads/`).
-- Custom player that supports HTML5 videos and YouTube iframes with custom controls.
-- Like/dislike reactions and subscribe/unsubscribe (stored in SQLite DB).
-- **Enhanced user profiles** with display name, age, gender, location, bio, and profile pictures.
-- Per-video privacy (public/private) and owner-only delete.
-- Light/Dark theme with a persistent toggle stored in `localStorage`.
-- Async actions for reactions and subscriptions to avoid full page reloads.
-- **Comprehensive registration system** with profile customization.
+### 🧠 Machine Learning Recommendation Engine
+ViewFlow now includes a powerful content-based filtering system that personalizes the viewing experience:
+- **Vector-Based Profiling**: Builds a dynamic user profile vector based on watched categories, tags, and channels.
+- **Smart Context Awareness**:
+  - **Recency Decay**: Prioritizes recent interests over older history.
+  - **Replay Boosting**: Detects and boosts content you watch repeatedly.
+  - **"Current Mood"**: Heavily weights the last 2 videos to adapt instantly to your current session.
+- **Personalized Feeds**:
+  - **For You**: A curated list of videos matching your unique taste profile.
+  - **From Your Channels**: Highlights content from creators you engage with most.
+  - **Up Next**: Intelligent suggestions that keep the binge going.
 
-## Quick start (development)
+### 🎬 Advanced Video Player
+A custom-built, themeable HTML5 player that rivals major platforms:
+- **Universal Support**: Plays local video uploads and YouTube embeds seamlessly.
+- **Theatre & Fullscreen Modes**: Immersive viewing options.
+- **Replay System**: Large, intuitive replay controls when a video ends.
+- **Ambient Mode**: Dynamic background lighting effects based on video content.
 
-Prerequisites:
-- Python 3.10+ (tested locally with 3.12)
-- A working virtual environment is recommended
+### 👤 Enhanced User Experience
+- **Rich Profiles**: Customize your presence with profile pictures, bio, location, and more.
+- **Social Interactions**: Like, dislike, subscribe, and comment asynchronously without page reloads.
+- **Dark/Light Mode**: A beautiful, persistent theme system that respects your eyes.
+- **Responsive Design**: Fully responsive layout that looks great on desktop and mobile.
 
-1. Create and activate a virtualenv (optional but recommended):
+### 🛠️ Developer Friendly
+- **Zero-Config Setup**: Automatically initializes the database and storage directories.
+- **Auto-Migration**: Best-effort SQLite schema migration for rapid prototyping.
+- **Modular Architecture**: Clean separation of concerns with Flask Blueprints.
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt  # or install flask and sqlalchemy manually
-```
+## 📦 Quick Start
 
-2. Run the dev server (default port 5000):
+### Prerequisites
+- Python 3.10+
 
-```bash
-python3 test.py
-# or use a different port:
-PORT=8080 python3 test.py
-```
+### Installation
 
-3. Open http://127.0.0.1:5000 (or chosen port) in your browser.
+1. **Clone and Setup**
+   ```bash
+   # Create a virtual environment
+   python3 -m venv .venv
+   source .venv/bin/activate
+   
+   # Install dependencies
+   pip install -r requirements.txt
+   ```
 
-Notes:
-- The app creates an `uploads/` directory and a SQLite DB file (`viewflow.db`) automatically when started.
-- `.gitignore` excludes `viewflow.db` and the `uploads/` folder so local artifacts are not committed.
+2. **Run the Server**
+   ```bash
+   python3 test.py
+   ```
+   The server will start on `http://127.0.0.1:5000`.
 
-## Data and migrations
-- This project uses a simple, best-effort approach to add missing columns to the SQLite DB (via `ALTER TABLE`) when the server starts. This is intended only for development convenience. For production apps use a migration tool such as Alembic.
+   *Note: The application will automatically create a `viewflow.db` database and an `uploads/` directory on the first run.*
 
-## Development notes
-- Templates live in `templates/` for easy editing.
-- Static assets are in `static/` (player, styles, async JS, theme script).
-- The lightweight dev server is `test.py` which contains models, routes, and initialization logic for testing.
+## 🏗️ Project Structure
+
+- **`test.py`**: The main entry point and development server. Contains models and route logic.
+- **`recommendations.py`**: The core logic for the ML recommendation engine.
+- **`templates/`**: Jinja2 templates for the frontend.
+- **`static/`**: CSS, JavaScript, and assets.
+- **`models.py`**: SQLAlchemy database models.
+- **`views.py`**: Route definitions (mirrored in `test.py` for the dev server).
+
+## 🤝 Contributing
+
+This project is a prototype for educational and development purposes. Feel free to fork, experiment, and submit pull requests!
+
+---
+*Developed by Gautham Nair & Deepak Patel*
