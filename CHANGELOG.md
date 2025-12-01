@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.2] - 2025-12-01
+
+### Fixed
+- Fixed video player timer logic to correctly display hours for long videos (e.g. 1:30:21 instead of 30:21).
+
 ## [0.5.1] - 2025-12-01
 
 ### Changed
