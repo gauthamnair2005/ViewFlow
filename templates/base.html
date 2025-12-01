@@ -14,7 +14,7 @@
     {% else %}
     <link rel="stylesheet" href="https://vjs.zencdn.net/8.20.0/video-js.css">
     {% endif %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=0.6.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=0.6.1">
 </head>
 <body class="ms-Fabric theme-dark">
     <nav class="navbar">
@@ -45,7 +45,7 @@
     </div>
     <footer>
         <p>Developed by <strong>Gautham Nair</strong> & <strong>Deepak Patel</strong></p>
-        <p>&copy; 2025 View<span>Flow</span> Project <span style="color: var(--text-sec); font-size: 0.85rem;">v0.6.0</span></p>
+        <p>&copy; 2025 View<span>Flow</span> Project <span style="color: var(--text-sec); font-size: 0.85rem;">v0.6.1</span></p>
     </footer>
     {% if config.VIDEOJS_LOCAL %}
     <script src="{{ url_for('static', filename='vendor/video.min.js') }}"></script>
@@ -54,6 +54,6 @@
     {% endif %}
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
     <script src="{{ url_for('static', filename='player.js') }}"></script>
-    <script src="{{ url_for('static', filename='async_actions.js') }}?v=0.6.0"></script>
+    <script src="{{ url_for('static', filename='async_actions.js') }}?v=0.6.1"></script>
 </body>
 </html>
