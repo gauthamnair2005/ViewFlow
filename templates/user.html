@@ -12,7 +12,7 @@
         <p style="margin:2px 0 0 0; color:var(--text-sec); font-size:0.9rem;">Joined {{ channel.date_joined|format_date }}</p>
         {% if current_user.is_authenticated and current_user.id != channel.id %}
         <form method="POST" action="{{ url_for('main.subscribe', channel_id=channel.id) }}" class="js-async-form" data-action="subscribe" style="margin-top:8px;">
-            <button type="submit" class="btn js-subscribe-btn {% if is_subscribed %}btn-primary{% else %}btn-accent{% endif %}">{% if is_subscribed %}Subscribed{% else %}Subscribe{% endif %}</button>
+            <button type="submit" class="btn js-subscribe-btn {% if is_subscribed %}btn-primary{% else %}btn-accent{% endif %}" style="display:flex; align-items:center; gap:6px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg> {% if is_subscribed %}Subscribed{% else %}Subscribe{% endif %}</button>
         </form>
         {% endif %}
     </div>
@@ -31,7 +31,7 @@
                         {% if video.thumbnail %}
                             <img src="{{ url_for('main.uploaded_file', filename=video.thumbnail) }}" alt="{{ video.title }}" style="width:100%; height:180px; object-fit:cover; border-radius:12px;">
                         {% else %}
-                            <span class="thumbnail-icon">▶</span>
+                            <span class="thumbnail-icon"><svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
                         {% endif %}
                     </div>
                 </a>

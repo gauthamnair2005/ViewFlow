@@ -10,20 +10,20 @@
                 <div class="vf-media" id="vf-media"></div>
 
                 <!-- Big central play overlay -->
-                <div id="vf-bigplay" class="vf-bigplay">▶</div>
+                <div id="vf-bigplay" class="vf-bigplay"><svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
 
                 <div class="vf-controls" id="vf-controls">
-                    <button id="vf-play" class="vf-btn vf-icon">▶</button>
+                    <button id="vf-play" class="vf-btn vf-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
                     <div class="vf-progress" id="vf-progress">
                         <div class="vf-progress-filled" id="vf-progress-filled"></div>
                         <div id="vf-progress-tooltip" class="vf-progress-tooltip" style="display:none">0:00</div>
                     </div>
                     <div class="vf-time" id="vf-time">0:00 / 0:00</div>
-                    <button id="vf-mute" class="vf-btn vf-icon">🔊</button>
+                    <button id="vf-mute" class="vf-btn vf-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
                     <input id="vf-volume" class="vf-volume" type="range" min="0" max="1" step="0.05" value="1" />
                     <button id="vf-speed" class="vf-btn">1x</button>
-                    <button id="vf-theatre" class="vf-btn vf-icon" title="Theatre mode">▭</button>
-                    <button id="vf-fullscreen" class="vf-btn vf-icon" title="Fullscreen">⤢</button>
+                    <button id="vf-theatre" class="vf-btn vf-icon" title="Theatre mode"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 6H5c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 10H5V8h14v8z"/></svg></button>
+                    <button id="vf-fullscreen" class="vf-btn vf-icon" title="Fullscreen"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
                 </div>
 
                 <!-- suggestions overlay (kept for compatibility) -->
@@ -38,7 +38,7 @@
                         <div class="vjs-suggestions-grid">
                             {% for rec in recommended %}
                             <a class="vjs-suggestion" href="{{ url_for('main.watch', video_id=rec.id) }}" data-src="{{ url_for('main.uploaded_file', filename=rec.filename) }}">
-                                <div class="vjs-thumb">{% if rec.thumbnail %}<img src="{{ url_for('main.uploaded_file', filename=rec.thumbnail) }}" alt="{{ rec.title }}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">{% else %}▶{% endif %}</div>
+                                <div class="vjs-thumb">{% if rec.thumbnail %}<img src="{{ url_for('main.uploaded_file', filename=rec.thumbnail) }}" alt="{{ rec.title }}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">{% else %}<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>{% endif %}</div>
                                 <div class="vjs-suggestion-meta">
                                     <div class="vjs-suggestion-title">{{ rec.title }}</div>
                                     <div class="vjs-suggestion-channel">{{ rec.uploader.display_name or rec.uploader.username }}</div>
@@ -59,18 +59,18 @@
                     <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
                         <form method="POST" action="{{ url_for('main.react_video', video_id=video.id) }}" style="display:inline" class="js-async-form" data-action="like">
                             <input type="hidden" name="action" value="like" />
-                            <button type="submit" class="btn js-like-btn {% if is_liked %}btn-accent{% else %}btn-primary{% endif %}">👍 <span id="likes-count">{{ likes }}</span></button>
+                            <button type="submit" class="btn js-like-btn {% if is_liked %}btn-accent{% else %}btn-primary{% endif %}" style="display:flex; align-items:center; gap:6px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L23 10z"/></svg> <span id="likes-count">{{ likes }}</span></button>
                         </form>
                         <form method="POST" action="{{ url_for('main.react_video', video_id=video.id) }}" style="display:inline" class="js-async-form" data-action="dislike">
                             <input type="hidden" name="action" value="dislike" />
-                            <button type="submit" class="btn js-dislike-btn {% if is_disliked %}btn-accent{% else %}btn-primary{% endif %}">👎 <span id="dislikes-count">{{ dislikes }}</span></button>
+                            <button type="submit" class="btn js-dislike-btn {% if is_disliked %}btn-accent{% else %}btn-primary{% endif %}" style="display:flex; align-items:center; gap:6px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v1.91l.01.01L1 14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg> <span id="dislikes-count">{{ dislikes }}</span></button>
                         </form>
                         <button class="btn btn-primary">Share</button>
                     </div>
                 </div>
                 <div>
                     <form method="POST" action="{{ url_for('main.subscribe', channel_id=video.uploader.id) }}" class="js-async-form" data-action="subscribe">
-                        <button type="submit" class="btn js-subscribe-btn {% if is_subscribed %}btn-primary{% else %}btn-accent{% endif %}">{% if is_subscribed %}Subscribed{% else %}Subscribe{% endif %}</button>
+                        <button type="submit" class="btn js-subscribe-btn {% if is_subscribed %}btn-primary{% else %}btn-accent{% endif %}" style="display:flex; align-items:center; gap:6px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg> {% if is_subscribed %}Subscribed{% else %}Subscribe{% endif %}</button>
                     </form>
                 </div>
             </div>
@@ -115,7 +115,7 @@
         <h3>Up Next</h3>
         {% for rec in recommended %}
         <a href="{{ url_for('main.watch', video_id=rec.id) }}" style="display:block; margin-bottom:20px; text-align: center;">
-            <div style="width:90%; height:150px; background:var(--muted); border-radius:8px; display:flex; justify-content:center; align-items:center; margin: 0 auto;">{% if rec.thumbnail %}<img src="{{ url_for('main.uploaded_file', filename=rec.thumbnail) }}" alt="{{ rec.title }}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">{% else %}▶{% endif %}</div>
+            <div style="width:90%; height:150px; background:var(--muted); border-radius:8px; display:flex; justify-content:center; align-items:center; margin: 0 auto;">{% if rec.thumbnail %}<img src="{{ url_for('main.uploaded_file', filename=rec.thumbnail) }}" alt="{{ rec.title }}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">{% else %}<svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>{% endif %}</div>
             <div style="margin-top: 8px;">
                 <h4 style="margin:0; font-size:0.9rem;">{{ rec.title }}</h4>
                 <p style="margin:5px 0 0 0; font-size:0.8rem; color:var(--text-sec);">{{ rec.uploader.display_name or rec.uploader.username }}</p>

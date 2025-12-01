@@ -23,7 +23,7 @@
             <input type="text" name="q" placeholder="Search" class="search-input">
         </form>
         <div class="nav-links">
-            <button id="theme-toggle" title="Toggle theme" class="btn" style="margin-right:8px;">🌙</button>
+            <button id="theme-toggle" title="Toggle theme" class="btn" style="margin-right:8px; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg></button>
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('main.upload') }}" class="btn btn-accent">+ Upload</a>
                 <span>{{ current_user.display_name or current_user.username }}</span>
