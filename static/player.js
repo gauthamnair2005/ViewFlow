@@ -34,8 +34,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function formatTime(seconds) {
     if (!isFinite(seconds) || seconds === undefined) return '0:00';
-    var s = Math.floor(seconds % 60);
+    var h = Math.floor(seconds / 3600);
     var m = Math.floor((seconds / 60) % 60);
+    var s = Math.floor(seconds % 60);
+    if (h > 0) {
+      return h + ':' + (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
+    }
     return m + ':' + (s < 10 ? '0' + s : s);
   }
 
