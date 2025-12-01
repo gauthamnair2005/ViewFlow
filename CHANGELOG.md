@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2025-12-01
+
+### Added
+- **Asynchronous Comments System**
+  - Implemented `Comment` model with user and video relationships.
+  - Added API endpoints for adding and deleting comments (`/video/<id>/comment`, `/comment/<id>/delete`).
+  - Updated `watch.html` to display comments section with user avatars and timestamps.
+  - Integrated `async_actions.js` to handle comment submission and deletion without page reloads.
+  - Comments update dynamically in the UI upon submission.
+
 ## [0.5.4] - 2025-12-01
 
 ### Changed
