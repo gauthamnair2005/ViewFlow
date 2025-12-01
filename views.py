@@ -96,6 +96,8 @@ def upload():
         file = request.files['file']
         title = request.form.get('title') or 'Untitled'
         description = request.form.get('description') or ''
+        category = request.form.get('category')
+        tags = request.form.get('tags')
 
         if file.filename == '':
             flash('No selected file')
@@ -118,7 +120,9 @@ def upload():
                 filename=save_name,
                 user_id=current_user.id,
                 is_public=is_public,
-                thumbnail=None
+                thumbnail=None,
+                category=category,
+                tags=tags
             )
             db.session.add(new_video)
             db.session.commit()

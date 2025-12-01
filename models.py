@@ -28,6 +28,8 @@ class Video(db.Model):
     filename = db.Column(db.String(300), nullable=False)
     is_public = db.Column(db.Boolean, default=True)
     thumbnail = db.Column(db.String(300), nullable=True)
+    category = db.Column(db.String(100), nullable=True)
+    tags = db.Column(db.String(500), nullable=True)
     views = db.Column(db.Integer, default=0)
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

@@ -89,6 +89,10 @@ def create_app():
                 vcol_names = {c[1] for c in vcols}
                 if 'thumbnail' not in vcol_names:
                     conn.execute(text("ALTER TABLE video ADD COLUMN thumbnail TEXT"))
+                if 'category' not in vcol_names:
+                    conn.execute(text("ALTER TABLE video ADD COLUMN category TEXT"))
+                if 'tags' not in vcol_names:
+                    conn.execute(text("ALTER TABLE video ADD COLUMN tags TEXT"))
             except Exception:
                 pass
             conn.close()
