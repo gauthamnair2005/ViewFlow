@@ -434,13 +434,37 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (src && isValidSrc) {
-          // switch to the new source (HTML5 only)
+          // switch to the new source (HTML5 only), with extra sanitization to prevent interpretation as dangerous URL
           if (html5video) { 
-            html5video.src = src.trim(); // trim whitespace to prevent spoofing
-            html5video.play(); 
-            hideOverlay(); 
-            hideReplayBtn();
-            playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+            var sanitizedSrc = "";
+            try {
+              // Try to use URL API to create an absolute URL from the source, restricted to http(s) and same origin
+              var parsedSrc = new URL(src.trim(), window.location.origin);
+              var allowedProtocols = ['http:', 'https:'];
+              if (
+                allowedProtocols.indexOf(parsedSrc.protocol) !== -1 &&
+                parsedSrc.origin === window.location.origin
+              ) {
+                sanitizedSrc = parsedSrc.href;
+              }
+            } catch (e) {
+              // fallback: only allow safe relative file names with allowed extensions (dots, alphanum, _, -, /, %)
+              if (
+                typeof src === 'string' &&
+                /^[a-zA-Z0-9_\-./%]+$/.test(src) && // simple safe chars
+                !/^(\/\/|\/|\\)/.test(src) &&       // does not start as absolute
+                !/^(data:|javascript:|vbscript:)/i.test(src.trim())
+              ) {
+                sanitizedSrc = src.trim();
+              }
+            }
+            if (sanitizedSrc) {
+              html5video.setAttribute('src', sanitizedSrc); // assign only fully sanitized src
+              html5video.play(); 
+              hideOverlay(); 
+              hideReplayBtn();
+              playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+            }
           }
           else if (ytPlayer) { /* can't change YouTube iframe source safely here */ }
         }
