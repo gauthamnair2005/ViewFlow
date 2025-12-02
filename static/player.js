@@ -401,7 +401,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var first = document.querySelector('.vjs-suggestion[data-src]');
       if (first) {
         var src = first.getAttribute('data-src');
-        if (src) {
+        if (src && !/^\s*javascript:/i.test(src)) {
           // switch to the new source (HTML5 only)
           if (html5video) { 
             html5video.src = src; 
