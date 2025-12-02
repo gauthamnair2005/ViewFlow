@@ -402,34 +402,32 @@ document.addEventListener('DOMContentLoaded', function () {
       if (first) {
         var src = first.getAttribute('data-src');
         
-        // Only allow http(s) URLs or relative paths (not protocols like data:, javascript:, etc)
+        // Strict whitelist: Only allow http(s) URLs (same origin) or simple relative filenames ending in allowed extensions.
         var isValidSrc = false;
+        var allowedExtensions = ['.mp4', '.webm', '.ogg'];
+        function hasAllowedExtension(s) {
+          return allowedExtensions.some(function(ext) {
+            return typeof s === 'string' && s.toLowerCase().endsWith(ext);
+          });
+        }
         try {
           var srcUrl = new URL(src, window.location.origin);
-          // Only allow same origin http(s): URLs, or relative URLs that aren't protocol-relative or contain dangerous schemes
+          // Only allow http(s) to *this* origin, extension must be allowed
           if (
             (srcUrl.protocol === "http:" || srcUrl.protocol === "https:") &&
-            // Only allow http(s) to this origin or a defined trusted host; you could further restrict this check.
-            (srcUrl.origin === window.location.origin)
-          ) {
-            isValidSrc = true;
-          }
-          // If src is a relative URL (not absolute URL), confirm it does not start with /, // or contain dangerous patterns
-          else if (
-            src &&
-            !/^(\/\/|\/|\\)/.test(src) &&
-            !/^(data:|javascript:|vbscript:)/i.test(src.trim()) &&
-            /^[a-zA-Z0-9_\-./%]+$/.test(src)
+            (srcUrl.origin === window.location.origin) &&
+            hasAllowedExtension(srcUrl.pathname)
           ) {
             isValidSrc = true;
           }
         } catch (e) {
-          // If URL construction fails, fallback: accept only simple relative file names, and disallow dangerous protocols
+          // fallback: Only allow plain relative file names with allowed extension
           if (
-            src &&
-            !/^(data:|javascript:|vbscript:)/i.test(src.trim()) &&
-            /^[a-zA-Z0-9_\-./%]+$/.test(src) &&
-            !/^(\/\/|\/|\\)/.test(src)
+            typeof src === 'string' &&
+            /^[a-zA-Z0-9_\-./%]+$/.test(src) && // simple safe chars, no directory traversal
+            !/^(\/\/|\/|\\)/.test(src) &&       // does not start as absolute
+            !/^(data:|javascript:|vbscript:)/i.test(src.trim()) && // not dangerous schemes
+            hasAllowedExtension(src)
           ) {
             isValidSrc = true;
           }
@@ -438,7 +436,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (src && isValidSrc) {
           // switch to the new source (HTML5 only)
           if (html5video) { 
-            html5video.src = src; 
+            html5video.src = src.trim(); // trim whitespace to prevent spoofing
             html5video.play(); 
             hideOverlay(); 
             hideReplayBtn();
