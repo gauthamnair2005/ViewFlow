@@ -160,7 +160,7 @@ def upload():
     if request.method == 'POST':
         if 'file' not in request.files:
             flash('No file part')
-            return redirect(request.url)
+            return redirect(url_for('main.upload'))
         file = request.files['file']
         title = request.form.get('title') or 'Untitled'
         description = request.form.get('description') or ''
@@ -169,7 +169,7 @@ def upload():
 
         if file.filename == '':
             flash('No selected file')
-            return redirect(request.url)
+            return redirect(url_for('main.upload'))
 
         visibility = request.form.get('visibility', 'public')
         is_public = True if visibility == 'public' else False
@@ -249,7 +249,7 @@ def upload():
             return redirect(url_for('main.home'))
         else:
             flash('File type not allowed')
-            return redirect(request.url)
+            return redirect(url_for('main.upload'))
 
     return render_template('upload.html', title='Upload')
 
@@ -321,11 +321,11 @@ def subscribe(channel_id):
         if is_ajax(request):
             return jsonify({'error': 'login_required', 'redirect': url_for('auth.login')}), 401
         flash('Please sign in to subscribe')
-        return redirect(request.referrer or url_for('auth.login'))
+        return redirect(url_for('auth.login'))
     
     if channel_id == current_user.id:
         flash('Cannot subscribe to yourself')
-        return redirect(request.referrer or url_for('main.home'))
+        return redirect(url_for('main.home'))
     
     channel = User.query.get_or_404(channel_id)
     existing = Subscription.query.filter_by(channel_id=channel_id, subscriber_id=current_user.id).first()
@@ -352,7 +352,7 @@ def subscribe(channel_id):
         except Exception:
             db.session.rollback()
             flash('Failed to subscribe')
-    return redirect(request.referrer or url_for('main.user_profile', username=channel.username))
+    return redirect(url_for('main.user_profile', username=channel.username))
 
 
 @main_bp.route('/video/<int:video_id>/react', methods=['POST'])
@@ -374,7 +374,7 @@ def react_video(video_id):
         if is_ajax(request):
             return jsonify({'error': 'Invalid action'}), 400
         flash('Invalid reaction')
-        return redirect(request.referrer or url_for('main.watch', video_id=video_id))
+        return redirect(url_for('main.watch', video_id=video_id))
     
     t = 1 if action == 'like' else -1
     existing = Reaction.query.filter_by(video_id=video.id, user_id=current_user.id).first()
@@ -405,7 +405,7 @@ def react_video(video_id):
         r = Reaction.query.filter_by(video_id=video.id, user_id=current_user.id).first()
         return jsonify({'likes': likes, 'dislikes': dislikes, 'is_liked': bool(r and r.type == 1), 'is_disliked': bool(r and r.type == -1)})
     
-    return redirect(request.referrer or url_for('main.watch', video_id=video_id))
+    return redirect(url_for('main.watch', video_id=video_id))
 
 @main_bp.route('/video/<int:video_id>/comment', methods=['POST'])
 def add_comment(video_id):

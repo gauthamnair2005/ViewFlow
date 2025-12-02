@@ -30,20 +30,6 @@ document.addEventListener('DOMContentLoaded', function () {
    * Only allows https/http URLs, and optionally relative/local sources with safe file extensions.
    * Rejects javascript:, data:, file:, or other dangerous schemes.
    */
-  function isSafeVideoUrl(url) {
-    if (!url) return false;
-    try {
-      // Allow only http(s) or relative URLs ending with video extensions (e.g., .mp4, .webm, .ogg)
-      var a = document.createElement('a');
-      a.href = url;
-      var isHttp = a.protocol === "https:" || a.protocol === "http:" || a.protocol === ":"; // ":" for relative URLs
-      var allowedExt = /\.(mp4|webm|ogg|mov|ogv|m4v)$/i.test(a.pathname);
-      return isHttp && allowedExt;
-    } catch(e) {
-      return false;
-    }
-  }
-
   var isYouTube = youtube && youtube.trim() !== '';
   var html5video = null;
   var ytPlayer = null;
@@ -104,9 +90,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // HTML5 video flow
   function initHTML5(src) {
+    if (!isSafeVideoUrl(src)) {
+      console.error('Unsafe video URL blocked');
+      return;
+    }
     html5video = document.createElement('video');
     // src has been validated by isSafeVideoUrl before being passed here.
-    html5video.src = src;
+    html5video.setAttribute('src', src);
     html5video.setAttribute('playsinline', '');
     html5video.preload = 'metadata';
     html5video.style.width = '100%';

@@ -1017,4 +1017,5 @@ if __name__ == '__main__':
         
     # Allow overriding port with PORT env var for local testing
     port = int(os.environ.get('PORT', 5000))
-    app.run(debug=True, port=port)
+    debug = os.environ.get('FLASK_DEBUG', 'False') == 'True'
+    app.run(debug=debug, port=port)
