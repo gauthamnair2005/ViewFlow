@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     html5video = document.createElement('video');
     // src has been validated by isSafeVideoUrl before being passed here.
-    html5video.setAttribute('src', src);
+    html5video.src = src;
     html5video.setAttribute('playsinline', '');
     html5video.preload = 'metadata';
     html5video.style.width = '100%';
@@ -493,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function () {
               }
             }
             if (sanitizedSrc) {
-              html5video.setAttribute('src', sanitizedSrc); // assign only fully sanitized src
+              html5video.src = sanitizedSrc; // assign only fully sanitized src
               html5video.play(); 
               hideOverlay(); 
               hideReplayBtn();

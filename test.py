@@ -602,7 +602,7 @@ def upload():
     if request.method == 'POST':
         if 'file' not in request.files:
             flash('No file part')
-            return redirect(request.url)
+            return redirect(url_for('main.upload'))
         file = request.files['file']
         title = request.form.get('title')
         description = request.form.get('description')
@@ -611,7 +611,7 @@ def upload():
         
         if file.filename == '':
             flash('No selected file')
-            return redirect(request.url)
+            return redirect(url_for('main.upload'))
             
         if file and allowed_file(file.filename, 'video'):
             filename = secure_filename(file.filename)
@@ -824,7 +824,7 @@ def subscribe(channel_id):
         if is_ajax(request):
             return jsonify({'error': 'login_required', 'redirect': url_for('auth.login')}), 401
         flash('Please sign in to subscribe')
-        return redirect(request.referrer or url_for('auth.login'))
+        return redirect(url_for('auth.login'))
 
     channel = User.query.get_or_404(channel_id)
     # toggle subscription
@@ -853,7 +853,7 @@ def subscribe(channel_id):
             db.session.rollback()
             flash('Failed to subscribe')
     # Default redirect for non-AJAX
-    return redirect(request.referrer or url_for('main.user_profile', username=channel.username))
+    return redirect(url_for('main.user_profile', username=channel.username))
 
 
 @main_bp.route('/video/<int:video_id>/delete', methods=['POST'])
@@ -863,7 +863,7 @@ def delete_video(video_id):
     # Only owner can delete
     if not (current_user.is_authenticated and current_user.id == video.user_id):
         flash('Not authorized to delete this video')
-        return redirect(request.referrer or url_for('main.home'))
+        return redirect(url_for('main.home'))
 
     # remove file from disk
     try:
@@ -898,7 +898,7 @@ def toggle_visibility(video_id):
     # Only owner can change visibility
     if not (current_user.is_authenticated and current_user.id == video.user_id):
         flash('Not authorized')
-        return redirect(request.referrer or url_for('main.home'))
+        return redirect(url_for('main.home'))
 
     new_vis = request.form.get('visibility')
     video.is_public = True if new_vis == 'public' else False
@@ -926,7 +926,7 @@ def react_video(video_id):
         if is_ajax(request):
             return jsonify({'error': 'Invalid action'}), 400
         flash('Invalid reaction')
-        return redirect(request.referrer or url_for('main.watch', video_id=video_id))
+        return redirect(url_for('main.watch', video_id=video_id))
 
     t = 1 if action == 'like' else -1
     existing = Reaction.query.filter_by(video_id=video.id, user_id=current_user.id).first()
@@ -957,7 +957,7 @@ def react_video(video_id):
         r = Reaction.query.filter_by(video_id=video.id, user_id=current_user.id).first()
         return jsonify({'likes': likes, 'dislikes': dislikes, 'is_liked': bool(r and r.type == 1), 'is_disliked': bool(r and r.type == -1)})
 
-    return redirect(request.referrer or url_for('main.watch', video_id=video_id))
+    return redirect(url_for('main.watch', video_id=video_id))
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(main_bp)
