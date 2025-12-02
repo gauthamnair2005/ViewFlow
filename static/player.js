@@ -406,15 +406,31 @@ document.addEventListener('DOMContentLoaded', function () {
         var isValidSrc = false;
         try {
           var srcUrl = new URL(src, window.location.origin);
-          if (srcUrl.protocol === "http:" || srcUrl.protocol === "https:") {
+          // Only allow same origin http(s): URLs, or relative URLs that aren't protocol-relative or contain dangerous schemes
+          if (
+            (srcUrl.protocol === "http:" || srcUrl.protocol === "https:") &&
+            // Only allow http(s) to this origin or a defined trusted host; you could further restrict this check.
+            (srcUrl.origin === window.location.origin)
+          ) {
             isValidSrc = true;
-          } else if (srcUrl.origin === window.location.origin && !/^(data:|javascript:|vbscript:)/i.test(src.trim())) {
-            // Allow relative URL that isn't a dangerous scheme
+          }
+          // If src is a relative URL (not absolute URL), confirm it does not start with /, // or contain dangerous patterns
+          else if (
+            src &&
+            !/^(\/\/|\/|\\)/.test(src) &&
+            !/^(data:|javascript:|vbscript:)/i.test(src.trim()) &&
+            /^[a-zA-Z0-9_\-./%]+$/.test(src)
+          ) {
             isValidSrc = true;
           }
         } catch (e) {
-          // If URL construction fails, check if it's a valid relative path
-          if (/^[^\s:\/\\]+(\.[^\s:\/\\]+)?$/.test(src) && !/^(data:|javascript:|vbscript:)/i.test(src.trim())) {
+          // If URL construction fails, fallback: accept only simple relative file names, and disallow dangerous protocols
+          if (
+            src &&
+            !/^(data:|javascript:|vbscript:)/i.test(src.trim()) &&
+            /^[a-zA-Z0-9_\-./%]+$/.test(src) &&
+            !/^(\/\/|\/|\\)/.test(src)
+          ) {
             isValidSrc = true;
           }
         }
