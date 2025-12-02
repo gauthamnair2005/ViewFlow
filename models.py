@@ -14,11 +14,18 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(200), nullable=False)
     date_joined = db.Column(db.DateTime, default=datetime.utcnow)
     location = db.Column(db.String(200), nullable=True)  # Region
-    age = db.Column(db.Integer, nullable=True)
+    date_of_birth = db.Column(db.Date, nullable=True)
     gender = db.Column(db.String(50), nullable=True)
     profile_pic = db.Column(db.String(300), nullable=True)  # Path to profile picture
     bio = db.Column(db.Text, nullable=True)  # Optional bio/description
     videos = db.relationship('Video', backref='uploader', lazy=True)
+
+    @property
+    def age(self):
+        if not self.date_of_birth:
+            return None
+        today = datetime.utcnow().date()
+        return today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
 
 
 class Video(db.Model):

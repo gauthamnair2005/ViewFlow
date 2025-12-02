@@ -75,20 +75,16 @@
             </div>
         </div>
         <div style="margin-top: 20px; padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);">
-            <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 10px;">
+            <div style="display:flex; align-items:center; gap: 5px; margin-bottom: 10px;">
                 {% if video.uploader.profile_pic %}
                     <img src="{{ url_for('main.uploaded_file', filename=video.uploader.profile_pic) }}" alt="{{ video.uploader.username }}" class="avatar" style="width: 40px; height: 40px; object-fit: cover;">
                 {% else %}
                     <div class="avatar" style="width: 40px; height: 40px;">{{ video.uploader.username[0].upper() }}</div>
                 {% endif %}
-                            <a href="{{ url_for('main.user_profile', username=video.uploader.username) }}" style="font-weight:bold; color:inherit; margin-left:8px;">{{ video.uploader.display_name or video.uploader.username }}</a>
+                <a href="{{ url_for('main.user_profile', username=video.uploader.username) }}" style="font-weight:bold; color:var(--text-main) !important;">{{ video.uploader.display_name or video.uploader.username }}</a>
                 <div style="margin-left:auto">
                     {% if current_user.is_authenticated %}
-                        {% if current_user.id != video.uploader.id %}
-                            <form method="POST" action="{{ url_for('main.subscribe', channel_id=video.uploader.id) }}">
-                                <button class="btn btn-accent">Subscribe</button>
-                            </form>
-                        {% else %}
+                        {% if current_user.id == video.uploader.id %}
                             <form method="POST" action="{{ url_for('main.delete_video', video_id=video.id) }}" style="display:inline">
                                 <button class="btn btn-primary">Delete</button>
                             </form>

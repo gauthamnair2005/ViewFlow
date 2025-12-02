@@ -1082,3 +1082,137 @@ body.theatre-mode .video-meta {
     background-color: rgba(234, 67, 53, 0.1);
     animation: pulse-red 1.5s infinite;
 }
+
+/* Navbar Profile & Responsive Buttons */
+.nav-profile-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    text-decoration: none;
+}
+
+.nav-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 16px; /* Squircle shape */
+    object-fit: cover;
+    border: 2px solid var(--border);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.nav-avatar-placeholder {
+    width: 42px;
+    height: 42px;
+    border-radius: 16px;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border: 2px solid var(--border);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.nav-profile-link:hover .nav-avatar,
+.nav-profile-link:hover .nav-avatar-placeholder {
+    transform: scale(1.05);
+    border-color: var(--accent);
+}
+
+/* Responsive Navbar Buttons */
+@media (max-width: 900px) {
+    .nav-btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+    .nav-links {
+        gap: 12px;
+    }
+}
+
+@media (max-width: 600px) {
+    .nav-btn {
+        padding: 6px 8px;
+        font-size: 0.85rem;
+    }
+    .nav-links {
+        gap: 8px;
+    }
+    /* Hide less critical buttons text or buttons entirely if needed, 
+       but for now just shrinking them fits the "dynamically adjust" request */
+    .nav-avatar, .nav-avatar-placeholder {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+    }
+}
+
+/* Dynamic Navbar Adjustments */
+.nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+}
+
+/* Hide text labels on medium/small screens to prevent overlap */
+@media (max-width: 1100px) {
+    .nav-label {
+        display: none;
+    }
+    .nav-btn {
+        padding: 8px; /* Make buttons icon-only square-ish */
+        border-radius: 50%; /* Optional: make them circular like icon-btn */
+    }
+    /* Adjust gap in nav-links */
+    .nav-links {
+        gap: 8px;
+    }
+}
+
+/* Ensure search bar shrinks properly */
+.search-form {
+    flex: 0 1 500px; /* Grow to 0, shrink to 1, basis 500px */
+    min-width: 150px; /* Minimum width before breaking layout */
+    margin: 0 10px;
+}
+
+/* Hide search bar on very small screens if needed, or just let it shrink */
+@media (max-width: 500px) {
+    .logo span {
+        display: none; /* Hide "ViewFlow" text on mobile, keep logo icon */
+    }
+    .search-form {
+        margin: 0 5px;
+    }
+}
+
+/* Icon-only Navbar Buttons */
+.nav-btn {
+    padding: 8px;
+    border-radius: 50%; /* Circular buttons */
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.btn-accent.nav-btn:hover {
+    background: var(--accent);
+    filter: brightness(1.1);
+}
+
+/* Adjust nav links gap for icon-only layout */
+.nav-links {
+    gap: 10px;
+}

@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, abort, jsonify, Blueprint
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, text, func
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -69,11 +69,18 @@ class User(UserMixin, db.Model):
     display_name = db.Column(db.String(150), nullable=True)
     date_joined = db.Column(db.DateTime, default=datetime.utcnow)
     location = db.Column(db.String(200), nullable=True)
-    age = db.Column(db.Integer, nullable=True)
+    date_of_birth = db.Column(db.Date, nullable=True)
     gender = db.Column(db.String(50), nullable=True)
     profile_pic = db.Column(db.String(300), nullable=True)
     bio = db.Column(db.Text, nullable=True)
     videos = db.relationship('Video', backref='uploader', lazy=True)
+
+    @property
+    def age(self):
+        if not self.date_of_birth:
+            return None
+        today = datetime.utcnow().date()
+        return today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
 
 class Video(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -642,7 +649,7 @@ def register():
         display_name = request.form.get('display_name') or username
         email = request.form.get('email')
         password = request.form.get('password')
-        age = request.form.get('age')
+        dob_str = request.form.get('date_of_birth')
         gender = request.form.get('gender')
         location = request.form.get('location')
         bio = request.form.get('bio')
@@ -655,6 +662,14 @@ def register():
             flash('Username already taken.')
             return redirect(url_for('auth.register'))
         
+        # Parse DOB
+        date_of_birth = None
+        if dob_str:
+            try:
+                date_of_birth = datetime.strptime(dob_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass
+
         # Handle profile picture upload
         profile_pic_path = None
         if 'profile_pic' in request.files:
@@ -685,7 +700,7 @@ def register():
             display_name=display_name,
             email=email, 
             password=generate_password_hash(password, method='pbkdf2:sha256'),
-            age=int(age) if age else None,
+            date_of_birth=date_of_birth,
             gender=gender if gender else None,
             location=location if location else None,
             bio=bio if bio else None,
@@ -704,6 +719,78 @@ def register():
 def logout():
     logout_user()
     return redirect(url_for('main.home'))
+
+@main_bp.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    if request.method == 'POST':
+        current_user.username = request.form.get('username')
+        current_user.display_name = request.form.get('display_name')
+        current_user.email = request.form.get('email')
+        current_user.gender = request.form.get('gender')
+        current_user.location = request.form.get('location')
+        current_user.bio = request.form.get('bio')
+        
+        dob_str = request.form.get('date_of_birth')
+        if dob_str:
+            try:
+                current_user.date_of_birth = datetime.strptime(dob_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass
+
+        if 'profile_pic' in request.files:
+            file = request.files['profile_pic']
+            if file and file.filename:
+                if allowed_file(file.filename, 'image'):
+                    filename = secure_filename(file.filename)
+                    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                    save_name = f"profile_{timestamp}_{filename}"
+                    profiles_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'profiles')
+                    os.makedirs(profiles_dir, exist_ok=True)
+                    save_path = os.path.join(profiles_dir, save_name)
+                    file.save(save_path)
+                    current_user.profile_pic = f"profiles/{save_name}"
+        
+        try:
+            db.session.commit()
+            flash('Profile updated successfully')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error updating profile')
+            
+    return render_template('settings.html', title='Settings')
+
+
+@main_bp.route('/subscriptions')
+@login_required
+def subscriptions():
+    # 1. Get subscribed channels
+    subs = Subscription.query.filter_by(subscriber_id=current_user.id).all()
+    channel_ids = [s.channel_id for s in subs]
+    
+    if not channel_ids:
+        return render_template('subscriptions.html', title='Subscriptions', channels=[], videos=[])
+
+    # 2. Sort channels by engagement (view count from history)
+    # Count views per channel for the current user
+    view_counts = db.session.query(Video.user_id, func.count(ViewHistory.id))\
+        .join(ViewHistory, ViewHistory.video_id == Video.id)\
+        .filter(ViewHistory.user_id == current_user.id)\
+        .filter(Video.user_id.in_(channel_ids))\
+        .group_by(Video.user_id).all()
+    
+    engagement_map = {uid: count for uid, count in view_counts}
+    
+    channels = User.query.filter(User.id.in_(channel_ids)).all()
+    # Sort by engagement desc
+    channels.sort(key=lambda c: engagement_map.get(c.id, 0), reverse=True)
+    
+    # 3. Get latest videos from subscriptions
+    videos = Video.query.filter(Video.user_id.in_(channel_ids), Video.is_public == True)\
+        .order_by(Video.upload_date.desc()).limit(20).all()
+        
+    return render_template('subscriptions.html', title='Subscriptions', channels=channels, videos=videos)
+
 
 @main_bp.route('/upload', methods=['GET', 'POST'])
 @login_required
@@ -1106,9 +1193,9 @@ if __name__ == '__main__':
                             conn.execute(text("ALTER TABLE user ADD COLUMN location VARCHAR(150)"))
                         except Exception:
                             pass
-                    if 'age' not in user_cols:
+                    if 'date_of_birth' not in user_cols:
                         try:
-                            conn.execute(text("ALTER TABLE user ADD COLUMN age INTEGER"))
+                            conn.execute(text("ALTER TABLE user ADD COLUMN date_of_birth DATE"))
                         except Exception:
                             pass
                     if 'date_joined' not in user_cols:

@@ -14,7 +14,7 @@
     {% else %}
     <link rel="stylesheet" href="https://vjs.zencdn.net/8.20.0/video-js.css">
     {% endif %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=0.8.1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=0.8.4">
 </head>
 <body class="ms-Fabric theme-dark">
     <nav class="navbar">
@@ -31,9 +31,25 @@
         <div class="nav-links">
             <button id="theme-toggle" title="Toggle theme" class="btn" style="margin-right:8px; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg></button>
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('main.upload') }}" class="btn btn-accent">+ Upload</a>
-                <span>{{ current_user.display_name or current_user.username }}</span>
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-primary">Logout</a>
+                <a href="{{ url_for('main.upload') }}" class="btn btn-accent nav-btn" title="Upload">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                </a>
+                <a href="{{ url_for('main.subscriptions') }}" class="btn nav-btn" style="background: transparent;" title="Subscriptions">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"/></svg>
+                </a>
+                <a href="{{ url_for('main.settings') }}" class="btn nav-btn" style="background: transparent;" title="Settings">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.41l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.41l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+                </a>
+                <a href="{{ url_for('main.user_profile', username=current_user.username) }}" class="nav-profile-link" title="Profile">
+                    {% if current_user.profile_pic %}
+                    <img src="{{ url_for('main.uploaded_file', filename=current_user.profile_pic) }}" alt="{{ current_user.username }}" class="nav-avatar">
+                    {% else %}
+                    <div class="nav-avatar-placeholder">{{ current_user.username[0].upper() }}</div>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-primary nav-btn" title="Logout">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                </a>
             {% else %}
                 <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Sign In</a>
             {% endif %}
