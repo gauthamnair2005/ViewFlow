@@ -21,7 +21,7 @@ import json
 from vosk import Model, KaldiRecognizer
 import wave
 
-__version__ = '0.8.0'
+__version__ = '0.8.1'
 
 # ==========================================
 # CONFIGURATION
