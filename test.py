@@ -12,7 +12,7 @@ import random
 from collections import Counter, defaultdict
 import math
 
-__version__ = '0.7.0'
+__version__ = '0.7.1'
 
 # ==========================================
 # CONFIGURATION
