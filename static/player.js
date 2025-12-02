@@ -29,6 +29,30 @@ document.addEventListener('DOMContentLoaded', function () {
   var html5video = null;
   var ytPlayer = null;
   var ytReady = false;
+
+  // Only allow safe video URLs (http, https, relative, with common video extensions)
+  function isSafeVideoUrl(url) {
+    if (!url) return false;
+    // Allow only http(s) or relative URLs, ending in common video extensions
+    try {
+      var allowedExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.m4v', '.ogv', '.avi', '.mkv'];
+      var urlObj = new URL(url, window.location.origin);
+      if (
+        (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') &&
+        allowedExtensions.some(function(ext) { return urlObj.pathname.toLowerCase().endsWith(ext); })
+      ) {
+        return true;
+      }
+      // For strictly relative URLs (without protocol, begins with / or just filename)
+      if (
+        !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url) && // does not begin with protocol
+        allowedExtensions.some(function(ext) { return url.toLowerCase().endsWith(ext); })
+      ) {
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
   var progressTimer = null;
   var controlsHideTimer = null;
 
@@ -479,7 +503,12 @@ document.addEventListener('DOMContentLoaded', function () {
   if (isYouTube) {
     initYouTube(youtube || videoSrc);
   } else {
-    initHTML5(videoSrc);
+    if (isSafeVideoUrl(videoSrc)) {
+      initHTML5(videoSrc);
+    } else {
+      // If unsafe, do not load; optionally log error or show message.
+      console.warn('Blocked potentially unsafe video src:', videoSrc);
+    }
   }
 
   // Auto-hide controls functionality
