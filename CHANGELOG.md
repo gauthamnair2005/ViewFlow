@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.2] - 2025-12-02
+
+### Added
+- **Profile Settings & Management**
+  - Added `/settings` page for users to update profile details (Username, Display Name, Bio, Location, Gender).
+  - Implemented profile picture upload and update functionality.
+  - Replaced static `age` field with `date_of_birth` (Date type) for dynamic age calculation.
+  - Updated registration flow to capture Date of Birth.
+- **Subscriptions Page**
+  - Added `/subscriptions` route displaying a personalized feed of videos from subscribed channels.
+  - **Smart Sorting**: Subscribed channels are prioritized based on user engagement (view history).
+  - **Top Panel**: Horizontal scrollable list of subscribed channels with avatars.
+- **Enhanced Navigation Bar**
+  - **Responsive Design**: Navbar buttons automatically switch to icon-only mode on smaller screens (< 1100px).
+  - **Profile Integration**: Replaced text display name with user's profile picture (squircle style).
+  - **Icon Refresh**: Updated Upload and Settings icons to cleaner, standard SVG icons.
+  - **Mobile Optimization**: Improved layout for mobile devices, hiding non-essential text labels.
+
+### Changed
+- **Watch Page UI**
+  - Removed redundant "Subscribe" button from the channel info bar (kept the main action button).
+  - Reduced spacing between channel avatar and name for a tighter layout.
+  - Updated channel name link color to match main text color (white in dark mode) instead of accent color.
+- **Database Schema**
+  - Updated `User` model to include `date_of_birth` column.
+  - Added `age` property to `User` model for dynamic calculation.
+
 ## [0.8.1] - 2025-12-02
 
 ### Security
