@@ -473,9 +473,117 @@ def delete_comment(comment_id):
 
 @main_bp.route('/search')
 def search():
+    import voice
     query = request.args.get('q', '')
     if query:
-        videos = Video.query.filter(Video.title.contains(query) | Video.description.contains(query)).filter_by(is_public=True).all()
+        # Process natural language/voice commands
+        clean_query = voice.process_command(query)
+        videos = Video.query.filter(Video.title.contains(clean_query) | Video.description.contains(clean_query)).filter_by(is_public=True).all()
     else:
         videos = []
     return render_template('search.html', title='Search', videos=videos, query=query)
+
+
+@main_bp.route('/voice_search', methods=['POST'])
+def voice_search_api():
+    if 'audio' not in request.files:
+        return jsonify({'error': 'No audio file provided'}), 400
+    
+    audio_file = request.files['audio']
+    if audio_file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    import speech_recognition as sr
+    import os
+    import static_ffmpeg
+    import uuid
+    import shutil
+    import subprocess
+    import json
+    from vosk import Model, KaldiRecognizer
+    import wave
+    
+    try:
+        static_ffmpeg.add_paths()
+    except Exception:
+        pass
+    
+    # Save temporary file
+    unique_id = str(uuid.uuid4())
+    temp_webm = os.path.join(current_app.config['UPLOAD_FOLDER'], f'temp_voice_{unique_id}.webm')
+    temp_wav = os.path.join(current_app.config['UPLOAD_FOLDER'], f'temp_voice_{unique_id}.wav')
+    
+    try:
+        if not shutil.which('ffmpeg'):
+            # Fallback: try to find it in static_ffmpeg location manually if add_paths failed
+            import sys
+            bin_path = os.path.join(sys.prefix, 'bin')
+            if os.path.exists(os.path.join(bin_path, 'ffmpeg')):
+                os.environ["PATH"] += os.pathsep + bin_path
+            
+            if not shutil.which('ffmpeg'):
+                return jsonify({'error': 'Server Error: ffmpeg binary not found'}), 500
+
+        audio_file.save(temp_webm)
+        
+        # Convert WebM to WAV using ffmpeg (SpeechRecognition needs WAV/AIFF/FLAC)
+        # -y to overwrite, -ac 1 for mono (optional but good for SR)
+        cmd = ['ffmpeg', '-i', temp_webm, '-ac', '1', '-ar', '16000', temp_wav, '-y']
+        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        
+        # Try Offline (Vosk) first if model exists
+        model_path = current_app.config.get('VOSK_MODEL_PATH')
+        if model_path and os.path.exists(model_path):
+            try:
+                model = Model(model_path)
+                wf = wave.open(temp_wav, "rb")
+                rec = KaldiRecognizer(model, wf.getframerate())
+                rec.SetWords(True)
+                
+                result_text = ""
+                while True:
+                    data = wf.readframes(4000)
+                    if len(data) == 0:
+                        break
+                    if rec.AcceptWaveform(data):
+                        pass
+                    else:
+                        pass
+                
+                final_res = json.loads(rec.FinalResult())
+                text = final_res.get('text', '')
+                wf.close()
+                
+                if text:
+                    return jsonify({'text': text})
+            except Exception as e:
+                print(f"Vosk error: {e}")
+                # Fallback to Google if Vosk fails
+        
+        r = sr.Recognizer()
+        with sr.AudioFile(temp_wav) as source:
+            audio_data = r.record(source)
+            # Try Google first (high accuracy, requires internet on server)
+            try:
+                text = r.recognize_google(audio_data)
+                return jsonify({'text': text})
+            except sr.UnknownValueError:
+                return jsonify({'error': 'Could not understand audio'}), 400
+            except sr.RequestError as e:
+                return jsonify({'error': f'Speech service error: {e}'}), 503
+                
+    except subprocess.CalledProcessError as e:
+        err_msg = e.stderr.decode() if e.stderr else str(e)
+        print(f"FFmpeg error: {err_msg}")
+        return jsonify({'error': 'Audio conversion failed'}), 500
+    except Exception as e:
+        print(f"Voice search error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Error: {str(e)}'}), 500
+    finally:
+        # Cleanup
+        if os.path.exists(temp_webm):
+            os.remove(temp_webm)
+        if os.path.exists(temp_wav):
+            os.remove(temp_wav)

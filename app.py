@@ -16,6 +16,7 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 * 1024  # 16GB max
+    app.config['VOSK_MODEL_PATH'] = os.environ.get('VOSK_MODEL_PATH', os.path.join(UPLOAD_FOLDER, 'models', 'vosk-model-small-en-us-0.15'))
 
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
@@ -43,6 +44,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
+    # Force reload
     # Try to bundle Video.js locally for offline/dev use
     def _ensure_videojs_local():
         try:
