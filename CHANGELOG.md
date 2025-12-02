@@ -16,6 +16,11 @@ All notable changes to this project will be documented in this file.
   - Added search icon button and improved focus states.
   - Added real-time feedback ("Listening...", "Processing...") and error handling.
 
+### Security
+- **Fixed Information Exposure Vulnerability**:
+  - Patched `views.py` and `test.py` to prevent returning raw exception messages to the client in the voice search API.
+  - Generic error messages are now returned to the user, while detailed errors are logged server-side.
+
 ### Changed
 - **Configuration**
   - Un-hardcoded sensitive configuration values (`SECRET_KEY`, `VOSK_MODEL_PATH`) to use environment variables.

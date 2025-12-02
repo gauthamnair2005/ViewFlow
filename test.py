@@ -599,7 +599,8 @@ def voice_search_api():
             except sr.UnknownValueError:
                 return jsonify({'error': 'Could not understand audio'}), 400
             except sr.RequestError as e:
-                return jsonify({'error': f'Speech service error: {e}'}), 503
+                print(f"Speech service error: {e}")
+                return jsonify({'error': 'Speech service unavailable'}), 503
                 
     except subprocess.CalledProcessError as e:
         err_msg = e.stderr.decode() if e.stderr else str(e)
@@ -609,7 +610,7 @@ def voice_search_api():
         print(f"Voice search error: {e}")
         import traceback
         traceback.print_exc()
-        return jsonify({'error': f'Error: {str(e)}'}), 500
+        return jsonify({'error': 'Voice processing failed'}), 500
     finally:
         # Cleanup
         if os.path.exists(temp_webm):
