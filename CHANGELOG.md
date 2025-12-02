@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.1] - 2025-12-02
+
+### Security
+- **Fixed Information Exposure Vulnerability**:
+  - Patched `views.py` and `test.py` to prevent returning raw exception messages to the client in the voice search API.
+  - Generic error messages are now returned to the user, while detailed errors are logged server-side.
+
 ## [0.8.0] - 2025-12-02
 
 ### Added
@@ -15,11 +22,6 @@ All notable changes to this project will be documented in this file.
   - Redesigned search bar with a modern, unified container.
   - Added search icon button and improved focus states.
   - Added real-time feedback ("Listening...", "Processing...") and error handling.
-
-### Security
-- **Fixed Information Exposure Vulnerability**:
-  - Patched `views.py` and `test.py` to prevent returning raw exception messages to the client in the voice search API.
-  - Generic error messages are now returned to the user, while detailed errors are logged server-side.
 
 ### Changed
 - **Configuration**
