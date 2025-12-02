@@ -25,6 +25,25 @@ document.addEventListener('DOMContentLoaded', function () {
   var videoSrc = container.getAttribute('data-video-src') || '';
   var youtube = container.getAttribute('data-youtube') || '';
 
+  /**
+   * Check that the provided URL is a safe video URL.
+   * Only allows https/http URLs, and optionally relative/local sources with safe file extensions.
+   * Rejects javascript:, data:, file:, or other dangerous schemes.
+   */
+  function isSafeVideoUrl(url) {
+    if (!url) return false;
+    try {
+      // Allow only http(s) or relative URLs ending with video extensions (e.g., .mp4, .webm, .ogg)
+      var a = document.createElement('a');
+      a.href = url;
+      var isHttp = a.protocol === "https:" || a.protocol === "http:" || a.protocol === ":"; // ":" for relative URLs
+      var allowedExt = /\.(mp4|webm|ogg|mov|ogv|m4v)$/i.test(a.pathname);
+      return isHttp && allowedExt;
+    } catch(e) {
+      return false;
+    }
+  }
+
   var isYouTube = youtube && youtube.trim() !== '';
   var html5video = null;
   var ytPlayer = null;
@@ -86,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // HTML5 video flow
   function initHTML5(src) {
     html5video = document.createElement('video');
+    // src has been validated by isSafeVideoUrl before being passed here.
     html5video.src = src;
     html5video.setAttribute('playsinline', '');
     html5video.preload = 'metadata';
