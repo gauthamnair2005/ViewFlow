@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2025-12-02
+
+### Added
+- **Voice Search Capability**
+  - Implemented voice search using `SpeechRecognition` and `Vosk` for offline support.
+  - Added microphone button to the search bar with pulsing visual feedback.
+  - Added backend API endpoint `/voice_search` to handle audio processing securely.
+  - Integrated `static-ffmpeg` for reliable audio conversion across environments.
+  - Added `voice.py` module for natural language query processing (e.g., "Show me funny cats" -> "funny cats").
+- **Enhanced Search UI**
+  - Redesigned search bar with a modern, unified container.
+  - Added search icon button and improved focus states.
+  - Added real-time feedback ("Listening...", "Processing...") and error handling.
+
+### Changed
+- **Configuration**
+  - Un-hardcoded sensitive configuration values (`SECRET_KEY`, `VOSK_MODEL_PATH`) to use environment variables.
+  - Updated `app.py` and `test.py` to respect these environment variables.
+
 ## [0.7.2] - 2025-12-02
 
 ### Security
