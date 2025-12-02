@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.2] - 2025-12-02
+
+### Security
+- **Fixed DOM-based XSS Vulnerability**:
+  - Patched `static/player.js` to prevent potential DOM text reinterpretation as HTML by normalizing video URLs before assignment.
+- **Fixed Open Redirect Vulnerabilities**:
+  - Removed unsafe usage of `request.referrer` in `views.py` and `test.py` to prevent open redirect attacks.
+  - Replaced redirects with explicit `url_for` routing.
+- **Hardened Configuration**:
+  - Disabled Flask debug mode by default in `test.py` (now controlled via `FLASK_DEBUG` environment variable).
+
 ## [0.7.1] - 2025-12-02
 
 ### Fixed
