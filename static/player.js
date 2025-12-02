@@ -96,7 +96,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     html5video = document.createElement('video');
     // src has been validated by isSafeVideoUrl before being passed here.
-    html5video.src = src;
+    try {
+      var urlObj = new URL(src, window.location.origin);
+      html5video.src = urlObj.href;
+    } catch (e) {
+      return;
+    }
     html5video.setAttribute('playsinline', '');
     html5video.preload = 'metadata';
     html5video.style.width = '100%';
