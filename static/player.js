@@ -401,7 +401,25 @@ document.addEventListener('DOMContentLoaded', function () {
       var first = document.querySelector('.vjs-suggestion[data-src]');
       if (first) {
         var src = first.getAttribute('data-src');
-        if (src && !/^\s*javascript:/i.test(src)) {
+        
+        // Only allow http(s) URLs or relative paths (not protocols like data:, javascript:, etc)
+        var isValidSrc = false;
+        try {
+          var srcUrl = new URL(src, window.location.origin);
+          if (srcUrl.protocol === "http:" || srcUrl.protocol === "https:") {
+            isValidSrc = true;
+          } else if (srcUrl.origin === window.location.origin && !/^(data:|javascript:|vbscript:)/i.test(src.trim())) {
+            // Allow relative URL that isn't a dangerous scheme
+            isValidSrc = true;
+          }
+        } catch (e) {
+          // If URL construction fails, check if it's a valid relative path
+          if (/^[^\s:\/\\]+(\.[^\s:\/\\]+)?$/.test(src) && !/^(data:|javascript:|vbscript:)/i.test(src.trim())) {
+            isValidSrc = true;
+          }
+        }
+
+        if (src && isValidSrc) {
           // switch to the new source (HTML5 only)
           if (html5video) { 
             html5video.src = src; 
