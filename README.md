@@ -20,7 +20,7 @@ ViewFlow now includes a powerful content-based filtering system that personalize
 
 ### 🎬 Advanced Video Player
 A custom-built, themeable HTML5 player that rivals major platforms:
-- **Universal Support**: Plays local video uploads and YouTube embeds seamlessly.
+- **Seamless Playback**: Plays uploaded videos seamlessly with a modern HTML5 interface.
 - **Theatre & Fullscreen Modes**: Immersive viewing options.
 - **Replay System**: Large, intuitive replay controls when a video ends.
 - **Ambient Mode**: Dynamic background lighting effects based on video content.
