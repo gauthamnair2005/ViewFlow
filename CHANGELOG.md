@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.1] - 2025-12-03
+
+### Added
+- **Custom Thumbnail Upload**
+  - Added option to upload a custom thumbnail image directly during the video upload process.
+  - Backend logic updated to prioritize user-uploaded thumbnails over auto-generated ones.
+- **Confirmation Modals**
+  - Implemented custom, theme-aware confirmation dialogs for critical actions (Delete Video, Toggle Visibility).
+  - Replaced native browser alerts with a styled modal in `base.html`.
+
+### Security
+- **Fixed DOM-based XSS Vulnerability**:
+  - Patched `static/player.js` to sanitize video URLs using `getSafeVideoUrl` before assignment to the player.
+  - Resolved CodeQL alert for "DOM text reinterpreted as HTML".
+- **Fixed Information Exposure**:
+  - Patched `test.py` to prevent leaking internal exception details in the heatmap API.
+  - Generic error messages are now returned to the client, with detailed logging on the server.
+
+### Fixed
+- **Video Deletion Logic**
+  - Fixed database error when deleting videos by explicitly removing related records (Reactions, ViewHistory, Comments) first.
+  - Added error logging for deletion failures.
+
 ## [0.9.0] - 2025-12-03
 
 ### Added
