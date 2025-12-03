@@ -1,6 +1,6 @@
 # ViewFlow
 
-**Version:** 0.8.2
+**Version:** 0.8.3
 
 ViewFlow is a modern, lightweight video sharing platform prototype built with Flask. It features a custom-built video player, a sophisticated recommendation engine, and a sleek, theme-aware user interface.
 
