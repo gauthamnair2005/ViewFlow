@@ -58,15 +58,9 @@ document.addEventListener('DOMContentLoaded', function () {
       
       // Apply best resolution initially if not original
       if (bestRes && bestRes !== resolutions[0]) {
-          // We don't auto-switch immediately to avoid overriding user preference or causing issues,
-          // but we could. For now, let's just mark it or default to it if we want.
-          // The user asked to "set it's max resolution in options".
-          // Let's actually switch to it if it's different from the first one (Original)
-          // But wait, "Original" might be 4K and screen is 1080p.
-          // If we switch, we save bandwidth.
-          // Let's do it.
-          if (html5video && isSafeVideoUrl(bestRes.src)) {
-             html5video.src = bestRes.src;
+          // Update videoSrc so initHTML5 uses the best resolution
+          if (isSafeVideoUrl(bestRes.src)) {
+              videoSrc = bestRes.src;
           }
       }
 
@@ -106,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var isPaused = html5video.paused;
       var playbackRate = html5video.playbackRate;
       if (isSafeVideoUrl(res.src)) {
-          html5video.src = res.src;
+          html5video.setAttribute('src', res.src);
       } else {
           console.error('Unsafe video URL blocked:', res.src);
           return;
