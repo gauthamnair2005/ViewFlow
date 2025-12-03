@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2025-12-03
+
+### Added
+- **Analytics Dashboard**
+  - Integrated analytics into the user profile page (visible only to the owner).
+  - **Charts**: Visual representation of Views and New Subscribers over the last 30 days using Chart.js.
+  - **Stats**: Summary cards for Total Views, Total Subscribers, and Total Videos.
+  - **Top Videos**: List of top 5 performing videos with detailed stats.
+- **Advanced Video Management**
+  - **Edit Video**: Added functionality to edit video title, description, category, tags, and thumbnail.
+  - **Visibility Toggle**: Quick toggle button (Public/Private) directly on the watch and profile pages.
+  - **Background Uploads**: Video processing (transcoding, thumbnail generation) now happens in the background.
+  - **Upload Progress**: Added a visual indicator (pulsing badge) on the profile icon for ongoing uploads.
+- **Player Enhancements**
+  - **"Most Replayed" Heatmap**: Added a YouTube-style heatmap graph overlay on the seek bar to show popular segments.
+  - **Seek Preview Frames**: Hovering over the seek bar now displays a preview thumbnail of that specific time.
+  - **Resolution Switching**: Support for multiple video resolutions (720p, 480p, 360p) with a quality selector in the player.
+  - **Markdown Descriptions**: Video descriptions now support Markdown formatting (bold, italics, links, lists).
+- **Database & Backend**
+  - Added `heatmap` and `preview_images` columns to `Video` model.
+  - Added `status` column to track upload processing state (`processing`, `ready`, `failed`).
+  - Implemented background thread for video processing using `threading`.
+  - Added API endpoints for heatmap data and upload status.
+
+### Changed
+- **Profile Page**:
+  - Introduced tabbed interface ("Videos" and "Analytics") for channel owners.
+  - Improved layout of video management controls (Edit, Delete, Visibility) to be side-by-side.
+- **Video Player**:
+  - Updated seek bar tooltip to be positioned above the bar with a pointed arrow.
+  - Heatmap visualization changed from bars to a smooth line graph with filled area.
+
 ## [0.8.3] - 2025-12-03
 
 ### Added
