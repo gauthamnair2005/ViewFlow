@@ -484,6 +484,24 @@ def search():
     return render_template('search.html', title='Search', videos=videos, query=query)
 
 
+@main_bp.route('/search/suggestions')
+def search_suggestions():
+    query = request.args.get('q', '').strip()
+    suggestions = []
+    
+    if query:
+        # Search for videos matching the query
+        # Use ilike for case-insensitive search if supported, or just contains
+        videos = Video.query.filter(Video.title.contains(query)).filter_by(is_public=True).limit(5).all()
+        suggestions = [{'text': v.title, 'type': 'video'} for v in videos]
+    else:
+        # Return trending (most viewed videos) as a proxy for trending searches
+        trending = Video.query.filter_by(is_public=True).order_by(Video.views.desc()).limit(5).all()
+        suggestions = [{'text': v.title, 'type': 'trending'} for v in trending]
+        
+    return jsonify(suggestions)
+
+
 @main_bp.route('/voice_search', methods=['POST'])
 def voice_search_api():
     if 'audio' not in request.files:
