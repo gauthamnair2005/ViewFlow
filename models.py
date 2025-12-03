@@ -18,6 +18,7 @@ class User(UserMixin, db.Model):
     gender = db.Column(db.String(50), nullable=True)
     profile_pic = db.Column(db.String(300), nullable=True)  # Path to profile picture
     bio = db.Column(db.Text, nullable=True)  # Optional bio/description
+    notifications_enabled = db.Column(db.Boolean, default=True)
     videos = db.relationship('Video', backref='uploader', lazy=True)
 
     @property
@@ -76,4 +77,15 @@ class ViewHistory(db.Model):
     
     user = db.relationship('User', backref='view_history', lazy=True)
     video = db.relationship('Video', backref='view_events', lazy=True)
+
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.String(500), nullable=False)
+    link = db.Column(db.String(500), nullable=True)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref='notifications', lazy=True)
 

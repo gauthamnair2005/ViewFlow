@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="settings-container" style="max-width: 600px; margin: 2rem auto; padding: 2rem; background: var(--bg-sec); border-radius: 12px;">
+    <h2 style="margin-bottom: 1.5rem;">Settings</h2>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem;">Profile Picture</label>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                {% if current_user.profile_pic %}
+                    <img src="{{ url_for('main.uploaded_file', filename=current_user.profile_pic) }}" alt="Current Profile" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover;">
+                {% else %}
+                    <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold;">
+                        {{ current_user.username[0].upper() }}
+                    </div>
+                {% endif %}
+                <input type="file" name="profile_pic" accept="image/*" class="form-control">
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="username" style="display: block; margin-bottom: 0.5rem;">Username</label>
+            <input type="text" name="username" id="username" value="{{ current_user.username }}" required class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 6px; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-main);">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="display_name" style="display: block; margin-bottom: 0.5rem;">Display Name</label>
+            <input type="text" name="display_name" id="display_name" value="{{ current_user.display_name or '' }}" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 6px; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-main);">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="email" style="display: block; margin-bottom: 0.5rem;">Email Address</label>
+            <input type="email" name="email" id="email" value="{{ current_user.email }}" required class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 6px; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-main);">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="bio" style="display: block; margin-bottom: 0.5rem;">Bio</label>
+            <textarea name="bio" id="bio" rows="4" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 6px; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-main);">{{ current_user.bio or '' }}</textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="location" style="display: block; margin-bottom: 0.5rem;">Location</label>
+            <input type="text" name="location" id="location" value="{{ current_user.location or '' }}" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 6px; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-main);">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="gender" style="display: block; margin-bottom: 0.5rem;">Gender</label>
+            <select name="gender" id="gender" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 6px; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-main);">
+                <option value="" {% if not current_user.gender %}selected{% endif %}>Select Gender</option>
+                <option value="Male" {% if current_user.gender == 'Male' %}selected{% endif %}>Male</option>
+                <option value="Female" {% if current_user.gender == 'Female' %}selected{% endif %}>Female</option>
+                <option value="Other" {% if current_user.gender == 'Other' %}selected{% endif %}>Other</option>
+                <option value="Prefer not to say" {% if current_user.gender == 'Prefer not to say' %}selected{% endif %}>Prefer not to say</option>
+            </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="date_of_birth" style="display: block; margin-bottom: 0.5rem;">Date of Birth</label>
+            <input type="date" name="date_of_birth" id="date_of_birth" value="{{ current_user.date_of_birth or '' }}" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 6px; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-main);">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem; display: flex; align-items: center;">
+            <input type="checkbox" name="notifications_enabled" id="notifications_enabled" {% if current_user.notifications_enabled %}checked{% endif %} style="margin-right: 0.5rem;">
+            <label for="notifications_enabled">Enable Notifications for New Uploads</label>
+        </div>
+
+        <button type="submit" class="btn btn-accent" style="padding: 0.75rem 1.5rem;">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

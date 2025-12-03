@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="notifications-container" style="max-width: 800px; margin: 2rem auto;">
+    <h2 style="margin-bottom: 1.5rem;">Notifications</h2>
+    
+    {% if notifications %}
+        <div class="notification-list" style="display: flex; flex-direction: column; gap: 1rem;">
+            {% for notif in notifications %}
+                <a href="{{ notif.link }}" class="notification-item" style="display: block; padding: 1rem; background: var(--bg-sec); border-radius: 8px; text-decoration: none; color: var(--text-main); border-left: 4px solid {% if notif.is_read %}transparent{% else %}var(--accent){% endif %}; transition: background 0.2s;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 500;">{{ notif.message }}</span>
+                        <span style="font-size: 0.85rem; color: var(--text-sec);">{{ notif.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem; color: var(--text-sec);">
+            <p>No notifications yet.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

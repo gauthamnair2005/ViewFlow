@@ -73,6 +73,7 @@ class User(UserMixin, db.Model):
     gender = db.Column(db.String(50), nullable=True)
     profile_pic = db.Column(db.String(300), nullable=True)
     bio = db.Column(db.Text, nullable=True)
+    notifications_enabled = db.Column(db.Boolean, default=True)
     videos = db.relationship('Video', backref='uploader', lazy=True)
 
     @property
@@ -129,6 +130,16 @@ class ViewHistory(db.Model):
     
     user = db.relationship('User', backref='view_history', lazy=True)
     video = db.relationship('Video', backref='view_events', lazy=True)
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.String(500), nullable=False)
+    link = db.Column(db.String(500), nullable=True)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref='notifications', lazy=True)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -434,6 +445,12 @@ def init_db():
                 if 'bio' not in user_cols:
                     try:
                         conn.execute(text("ALTER TABLE user ADD COLUMN bio TEXT"))
+                        conn.commit()
+                    except Exception:
+                        pass
+                if 'notifications_enabled' not in user_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE user ADD COLUMN notifications_enabled BOOLEAN DEFAULT 1"))
                         conn.commit()
                     except Exception:
                         pass
@@ -748,6 +765,7 @@ def settings():
         current_user.gender = request.form.get('gender')
         current_user.location = request.form.get('location')
         current_user.bio = request.form.get('bio')
+        current_user.notifications_enabled = 'notifications_enabled' in request.form
         
         dob_str = request.form.get('date_of_birth')
         if dob_str:
@@ -810,6 +828,18 @@ def subscriptions():
     return render_template('subscriptions.html', title='Subscriptions', channels=channels, videos=videos)
 
 
+@main_bp.route('/notifications')
+@login_required
+def notifications():
+    notifs = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).all()
+    # Mark as read
+    for n in notifs:
+        if not n.is_read:
+            n.is_read = True
+    db.session.commit()
+    return render_template('notifications.html', title='Notifications', notifications=notifs)
+
+
 @main_bp.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
@@ -850,6 +880,23 @@ def upload():
             )
             db.session.add(new_video)
             db.session.commit()
+
+            # Notify subscribers
+            try:
+                subscribers = Subscription.query.filter_by(channel_id=current_user.id).all()
+                for sub in subscribers:
+                    subscriber = User.query.get(sub.subscriber_id)
+                    if subscriber and getattr(subscriber, 'notifications_enabled', True):
+                        notif = Notification(
+                            user_id=subscriber.id,
+                            message=f"{current_user.username} uploaded: {new_video.title}",
+                            link=url_for('main.watch', video_id=new_video.id)
+                        )
+                        db.session.add(notif)
+                db.session.commit()
+            except Exception as e:
+                print(f"Notification error: {e}")
+
             return redirect(url_for('main.home'))
             
     return render_template('upload.html', title="Upload")
@@ -1047,7 +1094,6 @@ def subscribe(channel_id):
         try:
             db.session.delete(existing)
             db.session.commit()
-            flash('Unsubscribed')
             if is_ajax(request):
                 subs_count = Subscription.query.filter_by(channel_id=channel.id).count()
                 return jsonify({'subscribed': False, 'subs_count': subs_count})
@@ -1059,7 +1105,6 @@ def subscribe(channel_id):
             sub = Subscription(channel_id=channel.id, subscriber_id=current_user.id)
             db.session.add(sub)
             db.session.commit()
-            flash('Subscribed')
             if is_ajax(request):
                 subs_count = Subscription.query.filter_by(channel_id=channel.id).count()
                 return jsonify({'subscribed': True, 'subs_count': subs_count})
@@ -1150,16 +1195,13 @@ def react_video(video_id):
                 # undo
                 db.session.delete(existing)
                 db.session.commit()
-                flash('Reaction removed')
             else:
                 existing.type = t
                 db.session.commit()
-                flash('Reaction updated')
         else:
             r = Reaction(video_id=video.id, user_id=current_user.id, type=t)
             db.session.add(r)
             db.session.commit()
-            flash('Reaction recorded')
     except Exception:
         db.session.rollback()
         flash('Failed to record reaction')
