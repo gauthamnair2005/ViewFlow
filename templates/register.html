@@ -1,12 +1,16 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="auth-box" style="max-width: 600px;">
-    <h2 style="text-align:center;">Create Account</h2>
+    <div class="auth-header">
+        <img src="{{ url_for('static', filename='logo.svg') }}" alt="ViewFlow" class="auth-logo">
+        <h2 class="auth-title">Create Account</h2>
+        <p class="auth-subtitle">Join the ViewFlow community today</p>
+    </div>
     <form method="POST" enctype="multipart/form-data">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div class="form-group">
                 <label>Username *</label>
-                <input type="text" name="username" required>
+                <input type="text" name="username" required placeholder="Choose a username">
             </div>
             <div class="form-group">
                 <label>Display Name</label>
@@ -15,16 +19,16 @@
         </div>
         
         <div class="form-group">
-            <label>Email *</label>
-            <input type="email" name="email" required>
+            <label>Email Address *</label>
+            <input type="email" name="email" required placeholder="name@example.com">
         </div>
         
         <div class="form-group">
             <label>Password *</label>
-            <input type="password" name="password" required minlength="6">
+            <input type="password" name="password" required minlength="6" placeholder="At least 6 characters">
         </div>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div class="form-group">
                 <label>Date of Birth</label>
                 <input type="date" name="date_of_birth" required>
@@ -47,19 +51,21 @@
         
         <div class="form-group">
             <label>Profile Picture</label>
-            <input type="file" name="profile_pic" accept="image/*">
-            <small style="color: var(--text-sec); font-size: 0.85rem;">Accepted: JPG, PNG, GIF (Max 5MB)</small>
+            <div class="file-upload-wrapper">
+                <input type="file" name="profile_pic" accept="image/*">
+                <small style="color: var(--text-sec); margin-top: 8px; display: block;">Accepted: JPG, PNG, GIF (Max 5MB)</small>
+            </div>
         </div>
         
         <div class="form-group">
             <label>Bio (Optional)</label>
-            <textarea name="bio" rows="3" placeholder="Tell us about yourself..." style="width: 100%; padding: 10px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: inherit; resize: vertical;"></textarea>
+            <textarea name="bio" rows="3" placeholder="Tell us a bit about yourself..."></textarea>
         </div>
         
-        <button type="submit" class="btn btn-accent" style="width:100%; margin-top: 10px;">Create Account</button>
+        <button type="submit" class="btn btn-accent" style="width:100%; padding: 12px; font-size: 1rem; margin-top: 10px;">Create Account</button>
     </form>
-    <p style="text-align:center; margin-top:15px;">
-        Already have an account? <a href="{{ url_for('auth.login') }}" style="color:var(--accent);">Login</a>
-    </p>
+    <div class="auth-footer">
+        Already have an account? <a href="{{ url_for('auth.login') }}">Sign In</a>
+    </div>
 </div>
 {% endblock %}

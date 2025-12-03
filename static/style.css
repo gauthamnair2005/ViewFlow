@@ -252,8 +252,78 @@ a { text-decoration: none; color: inherit; }
 .vjs-suggestion:hover { background: rgba(255,255,255,0.03); transform: translateY(-2px); }
 
 
-.auth-box { max-width: 400px; margin: 100px auto; padding: 30px; background: var(--card-bg); border-radius: 8px; }
-.form-group { margin-bottom: 15px; }
+.auth-box {
+    max-width: 420px;
+    margin: 80px auto;
+    padding: 40px;
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-logo {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+}
+
+.auth-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-main);
+}
+
+.auth-subtitle {
+    color: var(--text-sec);
+    margin-top: 8px;
+    font-size: 0.95rem;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-main);
+    font-size: 0.9rem;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text-sec);
+    font-size: 0.9rem;
+}
+
+.auth-footer a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Light theme specific adjustments for auth box */
+body.theme-light .auth-box {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    border-color: rgba(0,0,0,0.06);
+}
 /* Global Form Element Styles */
 input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
 textarea,
