@@ -41,6 +41,11 @@ class Video(db.Model):
     views = db.Column(db.Integer, default=0)
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    resolutions = db.Column(db.String(200), nullable=True)
+    height = db.Column(db.Integer, nullable=True)
+    status = db.Column(db.String(20), default='ready')  # processing, ready, failed
+    heatmap = db.Column(db.Text, default='[]')  # JSON list of 100 ints
+    preview_images = db.Column(db.Text, nullable=True)  # JSON list of filenames
 
 
 class Subscription(db.Model):

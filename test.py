@@ -18,8 +18,11 @@ import uuid
 import shutil
 import subprocess
 import json
+import threading
 from vosk import Model, KaldiRecognizer
 import wave
+import markdown
+import bleach
 
 __version__ = '0.8.3'
 
@@ -37,6 +40,20 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, 'v
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 * 1024  # 16GB max
+
+# Markdown Filter
+@app.template_filter('markdown')
+def markdown_filter(text):
+    if not text:
+        return ""
+    # Convert markdown to HTML
+    html = markdown.markdown(text)
+    # Sanitize HTML
+    allowed_tags = ['p', 'strong', 'em', 'ul', 'ol', 'li', 'a', 'br', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre']
+    allowed_attrs = {'a': ['href', 'title', 'target']}
+    clean_html = bleach.clean(html, tags=allowed_tags, attributes=allowed_attrs, strip=True)
+    return clean_html
+
 app.config['VOSK_MODEL_PATH'] = os.environ.get('VOSK_MODEL_PATH', os.path.join(UPLOAD_FOLDER, 'models', 'vosk-model-small-en-us-0.15'))
 
 db = SQLAlchemy(app)
@@ -95,6 +112,11 @@ class Video(db.Model):
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     is_public = db.Column(db.Boolean, default=True)
+    resolutions = db.Column(db.String(200), nullable=True)  # JSON string: ["720p", "480p"]
+    height = db.Column(db.Integer, nullable=True)
+    status = db.Column(db.String(20), default='ready')
+    heatmap = db.Column(db.Text, default='[]')
+    preview_images = db.Column(db.Text, nullable=True)
 
 
 class Subscription(db.Model):
@@ -399,6 +421,36 @@ def init_db():
                         conn.commit()
                     except Exception:
                         pass
+                if 'resolutions' not in video_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE video ADD COLUMN resolutions VARCHAR(200)"))
+                        conn.commit()
+                    except Exception:
+                        pass
+                if 'height' not in video_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE video ADD COLUMN height INTEGER"))
+                        conn.commit()
+                    except Exception:
+                        pass
+                if 'status' not in video_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE video ADD COLUMN status VARCHAR(20) DEFAULT 'ready'"))
+                        conn.commit()
+                    except Exception:
+                        pass
+                if 'heatmap' not in video_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE video ADD COLUMN heatmap TEXT DEFAULT '[]'"))
+                        conn.commit()
+                    except Exception:
+                        pass
+                if 'preview_images' not in video_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE video ADD COLUMN preview_images TEXT"))
+                        conn.commit()
+                    except Exception:
+                        pass
 
             # user table columns
             try:
@@ -465,7 +517,7 @@ init_db()
 @main_bp.route('/')
 def home():
     # Base query for visible videos
-    base_query = Video.query
+    base_query = Video.query.filter_by(status='ready')
     if current_user.is_authenticated:
         base_query = base_query.filter((Video.is_public == True) | (Video.user_id == current_user.id))
     else:
@@ -822,7 +874,7 @@ def subscriptions():
     channels.sort(key=lambda c: engagement_map.get(c.id, 0), reverse=True)
     
     # 3. Get latest videos from subscriptions
-    videos = Video.query.filter(Video.user_id.in_(channel_ids), Video.is_public == True)\
+    videos = Video.query.filter(Video.user_id.in_(channel_ids), Video.is_public == True, Video.status == 'ready')\
         .order_by(Video.upload_date.desc()).limit(20).all()
         
     return render_template('subscriptions.html', title='Subscriptions', channels=channels, videos=videos)
@@ -839,6 +891,141 @@ def notifications():
     db.session.commit()
     return render_template('notifications.html', title='Notifications', notifications=notifs)
 
+
+def transcode_video(input_path, output_path, height):
+    try:
+        cmd = [
+            'ffmpeg', '-i', input_path,
+            '-vf', f'scale=-2:{height}',
+            '-c:v', 'libx264', '-crf', '28', '-preset', 'veryfast',
+            '-c:a', 'copy',
+            output_path, '-y'
+        ]
+        subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return True
+    except Exception as e:
+        print(f"Transcoding error: {e}")
+        return False
+
+def process_video_upload(app, video_id, video_path, save_name, timestamp):
+    with app.app_context():
+        with app.test_request_context():
+            try:
+                video = Video.query.get(video_id)
+                if not video:
+                    return
+
+                # Generate thumbnail
+                thumbnail_name = f"{timestamp}_thumb.jpg"
+                thumbnail_path = os.path.join(app.config['UPLOAD_FOLDER'], thumbnail_name)
+                generate_thumbnail(video_path, thumbnail_path)
+                
+                # Detect original height
+                original_height = 0
+                try:
+                    cap = cv2.VideoCapture(video_path)
+                    if cap.isOpened():
+                        original_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                    cap.release()
+                except:
+                    pass
+
+                # Transcode
+                resolutions = []
+                base_name = os.path.splitext(save_name)[0]
+                for res in [720, 480, 360]:
+                    # Don't upscale
+                    if original_height > 0 and res >= original_height:
+                        continue
+                        
+                    res_name = f"{base_name}_{res}p.mp4"
+                    res_path = os.path.join(app.config['UPLOAD_FOLDER'], res_name)
+                    if transcode_video(video_path, res_path, res):
+                        resolutions.append(f"{res}p")
+
+                # Generate preview images (10 frames)
+                preview_images = []
+                try:
+                    cap = cv2.VideoCapture(video_path)
+                    if cap.isOpened():
+                        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                        if total_frames > 0:
+                            for i in range(10):
+                                frame_idx = int(total_frames * (i / 10))
+                                cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+                                ret, frame = cap.read()
+                                if ret:
+                                    p_name = f"{timestamp}_preview_{i}.jpg"
+                                    p_path = os.path.join(app.config['UPLOAD_FOLDER'], p_name)
+                                    # Resize to small
+                                    frame = cv2.resize(frame, (160, 90))
+                                    cv2.imwrite(p_path, frame)
+                                    preview_images.append(p_name)
+                    cap.release()
+                except Exception as e:
+                    print(f"Preview generation error: {e}")
+
+                # Update video
+                video.thumbnail = thumbnail_name if os.path.exists(thumbnail_path) else None
+                video.resolutions = json.dumps(resolutions) if resolutions else None
+                video.height = original_height if original_height > 0 else None
+                video.status = 'ready'
+                video.preview_images = json.dumps(preview_images) if preview_images else None
+                
+                # Notify subscribers
+                try:
+                    subscribers = Subscription.query.filter_by(channel_id=video.user_id).all()
+                    for sub in subscribers:
+                        subscriber = User.query.get(sub.subscriber_id)
+                        if subscriber and getattr(subscriber, 'notifications_enabled', True):
+                            notif = Notification(
+                                user_id=subscriber.id,
+                                message=f"{video.uploader.username} uploaded: {video.title}",
+                                link=url_for('main.watch', video_id=video.id)
+                            )
+                            db.session.add(notif)
+                except Exception as e:
+                    print(f"Notification error: {e}")
+
+                db.session.commit()
+                
+            except Exception as e:
+                print(f"Background upload error: {e}")
+                if video:
+                    video.status = 'failed'
+                    db.session.commit()
+
+@main_bp.route('/api/video/<int:video_id>/heatmap', methods=['GET', 'POST'])
+def video_heatmap(video_id):
+    video = Video.query.get_or_404(video_id)
+    
+    if request.method == 'POST':
+        # Update heatmap
+        try:
+            data = request.get_json()
+            bucket = int(data.get('bucket', -1))
+            if 0 <= bucket < 100:
+                heatmap = json.loads(video.heatmap) if video.heatmap else []
+                if not heatmap or len(heatmap) != 100:
+                    heatmap = [0] * 100
+                heatmap[bucket] += 1
+                video.heatmap = json.dumps(heatmap)
+                db.session.commit()
+                return jsonify({'success': True})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 400
+            
+    # GET
+    return jsonify({'heatmap': json.loads(video.heatmap) if video.heatmap else []})
+
+@main_bp.route('/api/upload_status')
+@login_required
+def upload_status():
+    # Get videos that are processing
+    processing = Video.query.filter_by(user_id=current_user.id, status='processing').all()
+    return jsonify({
+        'processing': [{'id': v.id, 'title': v.title} for v in processing]
+    })
 
 @main_bp.route('/upload', methods=['GET', 'POST'])
 @login_required
@@ -864,39 +1051,24 @@ def upload():
             video_path = os.path.join(app.config['UPLOAD_FOLDER'], save_name)
             file.save(video_path)
             
-            # Generate thumbnail
-            thumbnail_name = f"{timestamp}_thumb.jpg"
-            thumbnail_path = os.path.join(app.config['UPLOAD_FOLDER'], thumbnail_name)
-            generate_thumbnail(video_path, thumbnail_path)
-            
+            # Create initial video entry
             new_video = Video(
                 title=title,
                 description=description,
                 filename=save_name,
-                thumbnail=thumbnail_name if os.path.exists(thumbnail_path) else None,
                 user_id=current_user.id,
                 category=category,
-                tags=tags
+                tags=tags,
+                status='processing'
             )
             db.session.add(new_video)
             db.session.commit()
+            
+            # Start background task
+            thread = threading.Thread(target=process_video_upload, args=(app, new_video.id, video_path, save_name, timestamp))
+            thread.start()
 
-            # Notify subscribers
-            try:
-                subscribers = Subscription.query.filter_by(channel_id=current_user.id).all()
-                for sub in subscribers:
-                    subscriber = User.query.get(sub.subscriber_id)
-                    if subscriber and getattr(subscriber, 'notifications_enabled', True):
-                        notif = Notification(
-                            user_id=subscriber.id,
-                            message=f"{current_user.username} uploaded: {new_video.title}",
-                            link=url_for('main.watch', video_id=new_video.id)
-                        )
-                        db.session.add(notif)
-                db.session.commit()
-            except Exception as e:
-                print(f"Notification error: {e}")
-
+            flash('Upload started! We are processing your video in the background.')
             return redirect(url_for('main.home'))
             
     return render_template('upload.html', title="Upload")
@@ -968,9 +1140,33 @@ def watch(video_id):
         s = Subscription.query.filter_by(subscriber_id=current_user.id, channel_id=video.user_id).first()
         is_subscribed = bool(s)
 
+    # Prepare resolutions list
+    avail_resolutions = []
+    if getattr(video, 'resolutions', None):
+        try:
+            res_list = json.loads(video.resolutions)
+            base_name = os.path.splitext(video.filename)[0]
+            for r in res_list:
+                avail_resolutions.append({
+                    'label': r,
+                    'src': url_for('main.uploaded_file', filename=f"{base_name}_{r}.mp4")
+                })
+        except:
+            pass
+    
+    # Add original
+    orig_label = 'Original'
+    if getattr(video, 'height', None):
+        orig_label = f"{video.height}p"
+        
+    avail_resolutions.insert(0, {
+        'label': orig_label,
+        'src': url_for('main.uploaded_file', filename=video.filename)
+    })
+
     return render_template('watch.html', title=video.title, video=video, recommended=recommended,
                            likes=likes, dislikes=dislikes, is_liked=is_liked, is_disliked=is_disliked,
-                           is_subscribed=is_subscribed, comments=comments)
+                           is_subscribed=is_subscribed, comments=comments, resolutions=avail_resolutions)
 
 def is_ajax(request):
     return request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.args.get('ajax')
@@ -1065,9 +1261,9 @@ def user_profile(username):
 
     # Show public videos; if current_user is the channel owner, show all their videos
     if current_user and current_user.is_authenticated and current_user.id == channel.id:
-        videos = Video.query.filter_by(user_id=channel.id).order_by(Video.upload_date.desc()).all()
+        videos = Video.query.filter_by(user_id=channel.id).filter(Video.status != 'failed').order_by(Video.upload_date.desc()).all()
     else:
-        videos = Video.query.filter_by(user_id=channel.id, is_public=True).order_by(Video.upload_date.desc()).all()
+        videos = Video.query.filter_by(user_id=channel.id, is_public=True, status='ready').order_by(Video.upload_date.desc()).all()
 
     # compute subscribers count and whether current_user subscribes
     subs_count = Subscription.query.filter_by(channel_id=channel.id).count()
@@ -1222,6 +1418,37 @@ def toggle_visibility(video_id):
     return redirect(url_for('main.watch', video_id=video_id))
 
 
+@main_bp.route('/video/<int:video_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_video(video_id):
+    video = Video.query.get_or_404(video_id)
+    if not (current_user.is_authenticated and current_user.id == video.user_id):
+        flash('Not authorized')
+        return redirect(url_for('main.home'))
+    
+    if request.method == 'POST':
+        video.title = request.form.get('title')
+        video.description = request.form.get('description')
+        video.category = request.form.get('category')
+        video.tags = request.form.get('tags')
+        
+        # Handle thumbnail update if provided
+        if 'thumbnail' in request.files:
+            file = request.files['thumbnail']
+            if file and file.filename != '':
+                filename = secure_filename(file.filename)
+                timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+                save_name = f"{timestamp}_thumb_{filename}"
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], save_name))
+                video.thumbnail = save_name
+
+        db.session.commit()
+        flash('Video updated')
+        return redirect(url_for('main.watch', video_id=video.id))
+        
+    return render_template('edit_video.html', title='Edit Video', video=video)
+
+
 @main_bp.route('/video/<int:video_id>/react', methods=['POST'])
 def react_video(video_id):
     # Check authentication first for AJAX requests
@@ -1290,6 +1517,31 @@ if __name__ == '__main__':
                 if 'thumbnail' not in cols:
                     try:
                         conn.execute(text("ALTER TABLE video ADD COLUMN thumbnail VARCHAR(200)"))
+                    except Exception:
+                        pass
+                if 'resolutions' not in cols:
+                    try:
+                        conn.execute(text("ALTER TABLE video ADD COLUMN resolutions VARCHAR(200)"))
+                    except Exception:
+                        pass
+                if 'height' not in cols:
+                    try:
+                        conn.execute(text("ALTER TABLE video ADD COLUMN height INTEGER"))
+                    except Exception:
+                        pass
+                if 'status' not in cols:
+                    try:
+                        conn.execute(text("ALTER TABLE video ADD COLUMN status VARCHAR(20) DEFAULT 'ready'"))
+                    except Exception:
+                        pass
+                if 'heatmap' not in cols:
+                    try:
+                        conn.execute(text("ALTER TABLE video ADD COLUMN heatmap TEXT DEFAULT '[]'"))
+                    except Exception:
+                        pass
+                if 'preview_images' not in cols:
+                    try:
+                        conn.execute(text("ALTER TABLE video ADD COLUMN preview_images TEXT"))
                     except Exception:
                         pass
                 # ensure user table has new profile columns
