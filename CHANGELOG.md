@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.3] - 2025-12-03
+
+### Added
+- **Search Suggestions**
+  - Implemented search suggestions dropdown in the search bar.
+  - Suggestions include trending videos (when query is empty) and matching video titles (when typing).
+  - Added backend endpoint `/search/suggestions` to serve suggestion data.
+  - Updated `test.py` to include the new search suggestions endpoint for development testing.
+- **UI/UX Improvements**
+  - **Animated Gradient Background**: Added a subtle, animated gradient background for both light and dark themes.
+  - **Modern Auth Pages**: Redesigned Login and Register pages with glassmorphism, rounded corners, and better input styling.
+  - **Search Bar**: Added a floating suggestions dropdown with backdrop blur.
+
+### Changed
+- **Visual Polish**
+  - Enhanced dark theme with deep, subtle colors in the animated gradient.
+  - Improved light theme with very pale, non-intrusive gradient colors.
+  - Updated `static/style.css` with new animations and component styles.
+
 ## [0.8.2] - 2025-12-02
 
 ### Added
