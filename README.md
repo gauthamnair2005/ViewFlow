@@ -1,8 +1,4 @@
-# ViewFlow
-
-<p align="center">
-  <img src="static/logo.svg" alt="ViewFlow Logo" width="150" height="150">
-</p>
+# <img src="static/logo.svg" alt="ViewFlow Logo" width="40" height="40" style="vertical-align: -5px;"> ViewFlow
 
 **Version:** 0.8.3
 
