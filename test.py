@@ -915,10 +915,11 @@ def process_video_upload(app, video_id, video_path, save_name, timestamp):
                 if not video:
                     return
 
-                # Generate thumbnail
+                # Generate thumbnail if not present
                 thumbnail_name = f"{timestamp}_thumb.jpg"
                 thumbnail_path = os.path.join(app.config['UPLOAD_FOLDER'], thumbnail_name)
-                generate_thumbnail(video_path, thumbnail_path)
+                if not video.thumbnail:
+                    generate_thumbnail(video_path, thumbnail_path)
                 
                 # Detect original height
                 original_height = 0
@@ -966,7 +967,8 @@ def process_video_upload(app, video_id, video_path, save_name, timestamp):
                     print(f"Preview generation error: {e}")
 
                 # Update video
-                video.thumbnail = thumbnail_name if os.path.exists(thumbnail_path) else None
+                if not video.thumbnail:
+                    video.thumbnail = thumbnail_name if os.path.exists(thumbnail_path) else None
                 video.resolutions = json.dumps(resolutions) if resolutions else None
                 video.height = original_height if original_height > 0 else None
                 video.status = 'ready'
@@ -1051,11 +1053,22 @@ def upload():
             video_path = os.path.join(app.config['UPLOAD_FOLDER'], save_name)
             file.save(video_path)
             
+            # Handle thumbnail upload
+            thumbnail_filename = None
+            if 'thumbnail' in request.files:
+                thumb_file = request.files['thumbnail']
+                if thumb_file and thumb_file.filename != '':
+                    t_filename = secure_filename(thumb_file.filename)
+                    t_save_name = f"{timestamp}_custom_thumb_{t_filename}"
+                    thumb_file.save(os.path.join(app.config['UPLOAD_FOLDER'], t_save_name))
+                    thumbnail_filename = t_save_name
+
             # Create initial video entry
             new_video = Video(
                 title=title,
                 description=description,
                 filename=save_name,
+                thumbnail=thumbnail_filename,
                 user_id=current_user.id,
                 category=category,
                 tags=tags,
