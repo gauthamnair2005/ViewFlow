@@ -31,13 +31,24 @@ body.theme-light {
     --progress-bg: rgba(0,0,0,0.08);
     --tooltip-bg: rgba(255,255,255,0.96);
     --tooltip-fg: var(--text-main);
+    background: linear-gradient(125deg, #faf0e6, #faebeb, #f0f5fa, #fafaf0);
+    background-size: 400% 400%;
+    animation: subtleGradient 20s ease infinite;
 }
 
 /* Explicit dark theme class (defaults already dark) */
-/* Explicit dark theme class (defaults already dark) */
+@keyframes subtleGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 body.theme-dark {
     --text-main: #ffffff;
     --text-sec: rgba(255,255,255,0.86);
+    background: linear-gradient(125deg, #0f0f0f, #1a0b14, #0a141a, #14140a);
+    background-size: 400% 400%;
+    animation: subtleGradient 20s ease infinite;
 }
 
 /* Ensure header/navbar and interactive text are pure white in dark theme */
