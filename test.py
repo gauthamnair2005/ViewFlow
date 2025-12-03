@@ -1402,10 +1402,16 @@ def delete_video(video_id):
 
     # delete DB record
     try:
+        # Delete related records manually to avoid FK constraint errors
+        Reaction.query.filter_by(video_id=video.id).delete()
+        ViewHistory.query.filter_by(video_id=video.id).delete()
+        Comment.query.filter_by(video_id=video.id).delete()
+
         db.session.delete(video)
         db.session.commit()
         flash('Video deleted')
-    except Exception:
+    except Exception as e:
+        print(f"Delete error: {e}")
         db.session.rollback()
         flash('Failed to delete video')
 
