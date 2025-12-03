@@ -611,7 +611,20 @@ footer p { margin: 6px 0; }
 .vf-icon { width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:1.05rem; }
 .vf-progress { flex: 1; height:10px; background: var(--progress-bg); border-radius: 999px; cursor: pointer; position: relative; overflow: visible; }
 .vf-progress-filled { position:absolute; left:0; top:0; bottom:0; width:0%; background: linear-gradient(90deg, var(--accent), #00b4ff); border-radius: 999px; box-shadow: 0 4px 14px rgba(0,120,212,0.12); }
-.vf-progress-tooltip { position: absolute; top: -30px; padding: 4px 8px; background: var(--tooltip-bg); color: var(--tooltip-fg); font-size: 0.8rem; border-radius: 4px; transform: translateX(-50%); pointer-events: none; white-space: nowrap; }
+.vf-progress-tooltip { position: absolute; bottom: 20px; top: auto; padding: 4px 8px; background: var(--tooltip-bg); color: var(--tooltip-fg); font-size: 0.8rem; border-radius: 4px; transform: translateX(-50%); pointer-events: none; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.vf-progress-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: var(--tooltip-bg) transparent transparent transparent;
+}
+.vf-progress-tooltip.has-preview::after {
+    border-top-color: #fff;
+}
 .vf-time { color: var(--text-sec); font-size: 0.9rem; margin-left:8px; white-space: nowrap; }
 .vf-volume { width:90px; }
 

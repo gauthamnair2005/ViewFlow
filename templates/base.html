@@ -15,6 +15,48 @@
     <link rel="stylesheet" href="https://vjs.zencdn.net/8.20.0/video-js.css">
     {% endif %}
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=0.8.5">
+    <style>
+        .upload-badge {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border: 2px solid var(--bg-main);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .upload-tooltip {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--bg-sec);
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 8px;
+            width: 200px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            margin-top: 10px;
+        }
+        .upload-tooltip.show {
+            display: block;
+        }
+        .upload-item {
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
 </head>
 <body class="ms-Fabric theme-dark">
     <nav class="navbar">
@@ -228,6 +270,60 @@
                 setTimeout(() => {
                     searchInput.setAttribute('placeholder', 'Search');
                 }, 3000);
+            }
+
+            // Upload Progress Logic
+            const profileLink = document.querySelector('.nav-profile-link');
+            if (profileLink) {
+                const badge = document.createElement('div');
+                badge.className = 'upload-badge';
+                badge.style.display = 'none';
+                profileLink.style.position = 'relative';
+                profileLink.appendChild(badge);
+
+                const tooltip = document.createElement('div');
+                tooltip.className = 'upload-tooltip';
+                profileLink.appendChild(tooltip);
+
+                let isHovering = false;
+                profileLink.addEventListener('mouseenter', () => { isHovering = true; updateTooltip(); });
+                profileLink.addEventListener('mouseleave', () => { isHovering = false; tooltip.classList.remove('show'); });
+
+                let processingVideos = [];
+
+                function updateTooltip() {
+                    if (processingVideos.length > 0 && isHovering) {
+                        tooltip.innerHTML = '<div style="font-weight:bold; margin-bottom:5px; color:var(--text-main)">Processing Uploads</div>';
+                        processingVideos.forEach(v => {
+                            tooltip.innerHTML += `<div class="upload-item">↻ ${v.title}</div>`;
+                        });
+                        tooltip.classList.add('show');
+                    } else {
+                        tooltip.classList.remove('show');
+                    }
+                }
+
+                function checkUploads() {
+                    fetch('/api/upload_status')
+                        .then(res => {
+                            if(res.ok) return res.json();
+                            return {processing: []};
+                        })
+                        .then(data => {
+                            processingVideos = data.processing || [];
+                            if (processingVideos.length > 0) {
+                                badge.style.display = 'block';
+                                updateTooltip();
+                            } else {
+                                badge.style.display = 'none';
+                                tooltip.classList.remove('show');
+                            }
+                        })
+                        .catch(err => console.log('Upload status check failed', err));
+                }
+
+                setInterval(checkUploads, 5000);
+                checkUploads();
             }
         });
     </script>

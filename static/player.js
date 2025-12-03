@@ -24,6 +24,98 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var videoSrc = container.getAttribute('data-video-src') || '';
   var youtube = container.getAttribute('data-youtube') || '';
+  var videoId = container.getAttribute('data-video-id');
+  var previewsData = container.getAttribute('data-previews');
+  var previews = [];
+  try { previews = JSON.parse(previewsData); } catch(e) {}
+  var resolutionsData = container.getAttribute('data-resolutions');
+  var resolutions = [];
+  try { resolutions = JSON.parse(resolutionsData); } catch(e) {}
+
+  var qualityBtn = document.getElementById('vf-quality');
+  var qualityMenu = document.getElementById('vf-quality-menu');
+
+  if (resolutions && resolutions.length > 0 && qualityBtn && qualityMenu) {
+      // Sort resolutions descending by height (assuming label ends with 'p')
+      resolutions.sort(function(a, b) {
+          var ha = parseInt(a.label) || 0;
+          var hb = parseInt(b.label) || 0;
+          return hb - ha;
+      });
+
+      // Auto-select best resolution based on screen height
+      var screenHeight = window.screen.height * (window.devicePixelRatio || 1);
+      var bestRes = resolutions[0]; // Default to max
+      
+      // Find the largest resolution that fits within screen height (or closest)
+      for (var i = 0; i < resolutions.length; i++) {
+          var h = parseInt(resolutions[i].label);
+          if (h && h <= screenHeight) {
+              bestRes = resolutions[i];
+              break;
+          }
+      }
+      
+      // Apply best resolution initially if not original
+      if (bestRes && bestRes !== resolutions[0]) {
+          // We don't auto-switch immediately to avoid overriding user preference or causing issues,
+          // but we could. For now, let's just mark it or default to it if we want.
+          // The user asked to "set it's max resolution in options".
+          // Let's actually switch to it if it's different from the first one (Original)
+          // But wait, "Original" might be 4K and screen is 1080p.
+          // If we switch, we save bandwidth.
+          // Let's do it.
+          if (html5video) {
+             html5video.src = bestRes.src;
+          }
+      }
+
+      resolutions.forEach(function(res) {
+          var item = document.createElement('div');
+          item.textContent = res.label;
+          item.style.padding = '5px 10px';
+          item.style.cursor = 'pointer';
+          item.style.color = '#fff';
+          item.style.fontSize = '0.9rem';
+          if (res === bestRes) item.style.fontWeight = 'bold';
+          
+          item.addEventListener('mouseover', function() { item.style.background = 'rgba(255,255,255,0.2)'; });
+          item.addEventListener('mouseout', function() { item.style.background = 'transparent'; });
+          item.addEventListener('click', function() {
+              changeQuality(res);
+              qualityMenu.style.display = 'none';
+          });
+          qualityMenu.appendChild(item);
+      });
+      
+      qualityBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          qualityMenu.style.display = qualityMenu.style.display === 'block' ? 'none' : 'block';
+      });
+      
+      document.addEventListener('click', function() {
+          qualityMenu.style.display = 'none';
+      });
+  } else {
+      if (qualityBtn) qualityBtn.style.display = 'none';
+  }
+
+  function changeQuality(res) {
+      if (!html5video) return;
+      var currentTime = html5video.currentTime;
+      var isPaused = html5video.paused;
+      var playbackRate = html5video.playbackRate;
+      html5video.src = res.src;
+      html5video.currentTime = currentTime;
+      html5video.playbackRate = playbackRate;
+      if (!isPaused) html5video.play();
+      // qualityBtn.textContent = res.label; // Keep icon
+      
+      // Update active state in menu
+      Array.from(qualityMenu.children).forEach(function(child) {
+          child.style.fontWeight = child.textContent === res.label ? 'bold' : 'normal';
+      });
+  }
 
   /**
    * Check that the provided URL is a safe video URL.
@@ -179,6 +271,29 @@ document.addEventListener('DOMContentLoaded', function () {
       progressTooltip.style.display = 'block';
       progressTooltip.textContent = formatTime(t);
       progressTooltip.style.left = (pct * 100) + '%';
+
+      // Preview Image
+      if (previews && previews.length > 0) {
+          progressTooltip.classList.add('has-preview');
+          var idx = Math.floor(pct * previews.length);
+          if (idx >= previews.length) idx = previews.length - 1;
+          var img = previews[idx];
+          if (img) {
+              // Derive base path from video source to ensure correct path
+              var uploadBase = videoSrc.substring(0, videoSrc.lastIndexOf('/') + 1);
+              progressTooltip.style.backgroundImage = 'url(' + uploadBase + img + ')';
+              progressTooltip.style.backgroundSize = 'cover';
+              progressTooltip.style.width = '160px';
+              progressTooltip.style.height = '90px';
+              progressTooltip.style.lineHeight = '170px'; // Push text down
+              progressTooltip.style.textAlign = 'center';
+              progressTooltip.style.borderRadius = '8px';
+              progressTooltip.style.border = '2px solid #fff';
+              progressTooltip.style.textShadow = '0 1px 2px black';
+          }
+      } else {
+          progressTooltip.classList.remove('has-preview');
+      }
     });
 
     progress.addEventListener('mouseleave', function () { if (progressTooltip) progressTooltip.style.display = 'none'; });
@@ -569,5 +684,84 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Initial show
   showControls();
+
+  // Heatmap
+  if (videoId) {
+      initHeatmap();
+  }
+
+  function initHeatmap() {
+      // Create canvas
+      var canvas = document.createElement('canvas');
+      canvas.className = 'vf-heatmap';
+      canvas.style.position = 'absolute';
+      canvas.style.bottom = '100%';
+      canvas.style.left = '0';
+      canvas.style.width = '100%';
+      canvas.style.height = '30px';
+      canvas.style.pointerEvents = 'none';
+      canvas.style.opacity = '0.6';
+      canvas.style.zIndex = '1'; // Ensure it's above background but below tooltip
+      progress.appendChild(canvas);
+      
+      // Fetch data
+      fetch('/api/video/' + videoId + '/heatmap')
+          .then(res => res.json())
+          .then(data => {
+              var heatmap = data.heatmap || [];
+              // Normalize heatmap data
+              if (heatmap.length > 0) {
+                  drawHeatmap(canvas, heatmap);
+              }
+          })
+          .catch(err => console.log('Heatmap fetch error', err));
+          
+      // Heartbeat
+      setInterval(function() {
+          if (html5video && !html5video.paused && html5video.duration > 0) {
+              var bucket = Math.floor((html5video.currentTime / html5video.duration) * 100);
+              if (bucket >= 100) bucket = 99;
+              fetch('/api/video/' + videoId + '/heatmap', {
+                  method: 'POST',
+                  headers: {'Content-Type': 'application/json'},
+                  body: JSON.stringify({bucket: bucket})
+              }).catch(e => {});
+          }
+      }, 5000);
+  }
+  
+  function drawHeatmap(canvas, data) {
+      var ctx = canvas.getContext('2d');
+      canvas.width = 300; // Internal resolution
+      canvas.height = 50;
+      var w = canvas.width / (data.length - 1);
+      var max = Math.max(...data);
+      if (max === 0) max = 1;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw filled area
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height);
+      data.forEach((val, i) => {
+          var h = (val / max) * canvas.height;
+          ctx.lineTo(i * w, canvas.height - h);
+      });
+      ctx.lineTo(canvas.width, canvas.height);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.fill();
+      
+      // Draw line on top
+      ctx.beginPath();
+      data.forEach((val, i) => {
+          var h = (val / max) * canvas.height;
+          if (i === 0) ctx.moveTo(i * w, canvas.height - h);
+          else ctx.lineTo(i * w, canvas.height - h);
+      });
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+  }
 
 });

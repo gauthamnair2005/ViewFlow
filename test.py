@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, abort, jsonify, Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text, func
@@ -1075,7 +1075,59 @@ def user_profile(username):
     if current_user and current_user.is_authenticated:
         is_subscribed = bool(Subscription.query.filter_by(channel_id=channel.id, subscriber_id=current_user.id).first())
 
-    return render_template('user.html', title=display_name_val, channel=channel, videos=videos, subs_count=subs_count, is_subscribed=is_subscribed)
+    # Analytics data (only for owner)
+    analytics_data = {}
+    if current_user.is_authenticated and current_user.id == channel.id:
+        # Summary Stats
+        total_views = sum(v.views for v in channel.videos)
+        total_subs = subs_count
+        total_videos = len(channel.videos)
+        
+        # Charts Data (Last 30 days)
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        
+        # Views per day
+        views_daily = db.session.query(
+            func.date(ViewHistory.timestamp), func.count(ViewHistory.id)
+        ).join(Video).filter(
+            Video.user_id == channel.id,
+            ViewHistory.timestamp >= thirty_days_ago
+        ).group_by(func.date(ViewHistory.timestamp)).all()
+        
+        # Subs per day
+        subs_daily = db.session.query(
+            func.date(Subscription.created_at), func.count(Subscription.id)
+        ).filter(
+            Subscription.channel_id == channel.id,
+            Subscription.created_at >= thirty_days_ago
+        ).group_by(func.date(Subscription.created_at)).all()
+        
+        # Format for Chart.js
+        dates = [(datetime.utcnow() - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(29, -1, -1)]
+        views_data_map = {d: 0 for d in dates}
+        for date_str, count in views_daily:
+            if date_str in views_data_map:
+                views_data_map[date_str] = count
+                
+        subs_data_map = {d: 0 for d in dates}
+        for date_str, count in subs_daily:
+            if date_str in subs_data_map:
+                subs_data_map[date_str] = count
+                
+        # Top Videos
+        top_videos = Video.query.filter_by(user_id=channel.id).order_by(Video.views.desc()).limit(5).all()
+
+        analytics_data = {
+            'total_views': total_views,
+            'total_subs': total_subs,
+            'total_videos': total_videos,
+            'dates': dates,
+            'views_data': [views_data_map[d] for d in dates],
+            'subs_data': [subs_data_map[d] for d in dates],
+            'top_videos': top_videos
+        }
+
+    return render_template('user.html', title=display_name_val, channel=channel, videos=videos, subs_count=subs_count, is_subscribed=is_subscribed, analytics=analytics_data)
 
 
 @main_bp.route('/subscribe/<int:channel_id>', methods=['POST'])
