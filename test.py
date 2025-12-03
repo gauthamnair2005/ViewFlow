@@ -1015,7 +1015,8 @@ def video_heatmap(video_id):
                 db.session.commit()
                 return jsonify({'success': True})
         except Exception as e:
-            return jsonify({'error': str(e)}), 400
+            print(f"Heatmap update error: {e}")
+            return jsonify({'error': 'Failed to update heatmap'}), 400
             
     # GET
     return jsonify({'heatmap': json.loads(video.heatmap) if video.heatmap else []})

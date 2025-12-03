@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
           // But wait, "Original" might be 4K and screen is 1080p.
           // If we switch, we save bandwidth.
           // Let's do it.
-          if (html5video) {
+          if (html5video && isSafeVideoUrl(bestRes.src)) {
              html5video.src = bestRes.src;
           }
       }
@@ -105,7 +105,12 @@ document.addEventListener('DOMContentLoaded', function () {
       var currentTime = html5video.currentTime;
       var isPaused = html5video.paused;
       var playbackRate = html5video.playbackRate;
-      html5video.src = res.src;
+      if (isSafeVideoUrl(res.src)) {
+          html5video.src = res.src;
+      } else {
+          console.error('Unsafe video URL blocked:', res.src);
+          return;
+      }
       html5video.currentTime = currentTime;
       html5video.playbackRate = playbackRate;
       if (!isPaused) html5video.play();
