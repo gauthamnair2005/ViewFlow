@@ -101,8 +101,8 @@ document.addEventListener('DOMContentLoaded', function () {
       var isPaused = html5video.paused;
       var playbackRate = html5video.playbackRate;
       var safeSrc = getSafeVideoUrl(res.src);
-      if (safeSrc) {
-          html5video.src = safeSrc;
+      if (safeSrc && html5video.tagName === 'VIDEO') {
+          html5video.setAttribute('src', safeSrc);
       } else {
           console.error('Unsafe video URL blocked:', res.src);
           return;
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function () {
         !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url) && // does not begin with protocol
         allowedExtensions.some(function(ext) { return url.toLowerCase().endsWith(ext); })
       ) {
-        return url;
+        try { return new URL(url, window.location.origin).href; } catch(e) { return null; }
       }
     } catch (e) {}
     return null;
