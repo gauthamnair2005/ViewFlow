@@ -230,9 +230,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 track.kind = 'captions';
                 track.label = 'English';
                 track.srclang = 'en';
-                try{ track.src = new URL(cs, window.location.origin).href; } catch(e){ track.src = cs; }
-                track.default = true;
-                html5video.appendChild(track);
+                // Fetch the captions resource first (same-origin) and use a blob URL to avoid direct injection
+                (function(){
+                    try {
+                        var capsUrl = new URL(cs, window.location.origin);
+                        // Only allow same-origin http(s)
+                        if ((capsUrl.protocol === 'http:' || capsUrl.protocol === 'https:') && capsUrl.origin === window.location.origin) {
+                            fetch(capsUrl.href, { credentials: 'same-origin' }).then(function(resp){
+                                var ct = resp.headers.get('content-type') || '';
+                                if (!resp.ok || !/text\/.+|application\/vnd\.mol\+json|application\/vtt|text\/vtt|application\/octet-stream/.test(ct)) {
+                                    console.warn('Blocked captions due to invalid response or content-type', capsUrl.href, ct);
+                                    return;
+                                }
+                                return resp.blob();
+                            }).then(function(b){ if(!b) return; var objectUrl = URL.createObjectURL(b); track.src = objectUrl; track.default = true; html5video.appendChild(track); }).catch(function(err){ console.warn('Captions fetch error', err); });
+                        } else {
+                            console.warn('Blocked captions that are not same-origin:', cs);
+                        }
+                    } catch (e) { console.warn('Captions assignment error', e); }
+                })();
             } else {
                 console.warn('Blocked unsafe captions source:', captionsSrc);
             }
