@@ -4,6 +4,12 @@ Flask-SQLAlchemy>=3.0.2
 SQLAlchemy>=1.4.0
 Werkzeug>=2.2.3
 Jinja2>=3.0.0
+opencv-python-headless>=4.8.0
+SpeechRecognition>=3.10.0
+static-ffmpeg>=2.5
+vosk>=0.3.45
+Markdown>=3.4.0
+bleach>=6.0.0
 
 # Optional (useful for production testing)
 gunicorn>=20.1.0
