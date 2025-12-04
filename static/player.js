@@ -170,16 +170,19 @@ document.addEventListener('DOMContentLoaded', function () {
   function hideOverlay() { if (overlay) overlay.style.display = 'none'; }
   function showBigPlay() { if (!bigPlay) return; bigPlay.classList.remove('hidden'); }
   function hideBigPlay() { if (!bigPlay) return; bigPlay.classList.add('hidden'); }
-  function showReplayBtn() { 
+  function buildSvg(pathD, w, h, fill){ const ns='http://www.w3.org/2000/svg'; const svg=document.createElementNS(ns,'svg'); svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('width', String(w)); svg.setAttribute('height', String(h)); if(fill) svg.setAttribute('fill', fill); const p=document.createElementNS(ns,'path'); p.setAttribute('d', pathD); svg.appendChild(p); return svg; }
+    function showReplayBtn() { 
     if (!bigPlay) return; 
     bigPlay.classList.remove('hidden'); 
     bigPlay.classList.add('replay-btn');
-    bigPlay.innerHTML = '<svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>'; 
+    while(bigPlay.firstChild) bigPlay.removeChild(bigPlay.firstChild);
+    bigPlay.appendChild(buildSvg('M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z',48,48,'currentColor'));
   }
   function hideReplayBtn() { 
     if (!bigPlay) return; 
     bigPlay.classList.remove('replay-btn');
-    bigPlay.innerHTML = '<svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'; 
+    while(bigPlay.firstChild) bigPlay.removeChild(bigPlay.firstChild);
+    bigPlay.appendChild(buildSvg('M8 5v14l11-7z',48,48,'currentColor'));
   }
 
   // HTML5 video flow
@@ -239,21 +242,24 @@ document.addEventListener('DOMContentLoaded', function () {
     html5video.addEventListener('play', function () { 
       hideOverlay(); 
       hideBigPlay(); 
-      playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>'; 
+      while(playBtn.firstChild) playBtn.removeChild(playBtn.firstChild);
+      playBtn.appendChild(buildSvg('M6 19h4V5H6v14zm8-14v14h4V5h-4z',24,24,'currentColor'));
       hideReplayBtn(); 
       startProgressTimer(); 
       container.classList.remove('paused');
       startAmbientLoop();
     });
     html5video.addEventListener('pause', function () { 
-      playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'; 
+      while(playBtn.firstChild) playBtn.removeChild(playBtn.firstChild);
+      playBtn.appendChild(buildSvg('M8 5v14l11-7z',24,24,'currentColor'));
       stopProgressTimer(); 
       container.classList.add('paused');
     });
     html5video.addEventListener('ended', function () { 
       showOverlay(); 
       showReplayBtn(); 
-      playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>'; 
+      while(playBtn.firstChild) playBtn.removeChild(playBtn.firstChild);
+      playBtn.appendChild(buildSvg('M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z',24,24,'currentColor'));
       stopProgressTimer(); 
       container.classList.add('paused');
     });
@@ -261,7 +267,8 @@ document.addEventListener('DOMContentLoaded', function () {
       if (html5video.ended) {
         html5video.currentTime = 0;
         html5video.play();
-        playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+        while(playBtn.firstChild) playBtn.removeChild(playBtn.firstChild);
+        playBtn.appendChild(buildSvg('M6 19h4V5H6v14zm8-14v14h4V5h-4z',24,24,'currentColor'));
         hideReplayBtn();
         hideOverlay();
       } else {
@@ -377,7 +384,8 @@ document.addEventListener('DOMContentLoaded', function () {
   // YouTube flow
   function initYouTube(yurl) {
     // create iframe container
-    mediaWrap.innerHTML = '<div id="vf-yt"></div>';
+    // create container safely
+    var ytDiv = document.createElement('div'); ytDiv.id = 'vf-yt'; mediaWrap.innerHTML = ''; mediaWrap.appendChild(ytDiv);
 
     function createPlayer() {
       ytPlayer = new YT.Player('vf-yt', {
@@ -386,9 +394,9 @@ document.addEventListener('DOMContentLoaded', function () {
         events: {
           onReady: function (e) { ytReady = true; volumeEl.value = (e.target.getVolume() / 100) || 1; updateTime(); },
           onStateChange: function (e) {
-            if (e.data === YT.PlayerState.PLAYING) { playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>'; hideOverlay(); hideBigPlay(); hideReplayBtn(); startProgressTimer(); }
-            else if (e.data === YT.PlayerState.PAUSED) { playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'; stopProgressTimer(); }
-            else if (e.data === YT.PlayerState.ENDED) { playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>'; showOverlay(); showReplayBtn(); stopProgressTimer(); }
+            if (e.data === YT.PlayerState.PLAYING) { while(playBtn.firstChild) playBtn.removeChild(playBtn.firstChild); playBtn.appendChild(buildSvg('M6 19h4V5H6v14zm8-14v14h4V5h-4z',24,24,'currentColor')); hideOverlay(); hideBigPlay(); hideReplayBtn(); startProgressTimer(); }
+            else if (e.data === YT.PlayerState.PAUSED) { while(playBtn.firstChild) playBtn.removeChild(playBtn.firstChild); playBtn.appendChild(buildSvg('M8 5v14l11-7z',24,24,'currentColor')); stopProgressTimer(); }
+            else if (e.data === YT.PlayerState.ENDED) { while(playBtn.firstChild) playBtn.removeChild(playBtn.firstChild); playBtn.appendChild(buildSvg('M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z',24,24,'currentColor')); showOverlay(); showReplayBtn(); stopProgressTimer(); }
           }
         }
       });
@@ -481,7 +489,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var muted = false;
     if (html5video) muted = html5video.muted || html5video.volume === 0;
     else if (ytPlayer && ytReady) muted = ytPlayer.isMuted();
-    muteBtn.innerHTML = muted ? '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>' : '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
+    // set mute icon safely
+    while(muteBtn.firstChild) muteBtn.removeChild(muteBtn.firstChild);
+    if(muted){ muteBtn.appendChild(buildSvg('M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z',24,24,'currentColor')); }
+    else { muteBtn.appendChild(buildSvg('M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z',24,24,'currentColor')); }
   }
 
   var playbackRates = [0.5,1,1.5,2];
@@ -528,11 +539,13 @@ document.addEventListener('DOMContentLoaded', function () {
       isTheatreMode = !isTheatreMode;
       if (isTheatreMode) {
         document.body.classList.add('theatre-mode');
-        theatreBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 5H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 12H5V7h14v10z"/></svg>';
+        while(theatreBtn.firstChild) theatreBtn.removeChild(theatreBtn.firstChild);
+        theatreBtn.appendChild(buildSvg('M19 5H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 12H5V7h14v10z',24,24,'currentColor'));
         theatreBtn.title = 'Default mode';
       } else {
         document.body.classList.remove('theatre-mode');
-        theatreBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 6H5c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 10H5V8h14v8z"/></svg>';
+        while(theatreBtn.firstChild) theatreBtn.removeChild(theatreBtn.firstChild);
+        theatreBtn.appendChild(buildSvg('M19 6H5c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 10H5V8h14v8z',24,24,'currentColor'));
         theatreBtn.title = 'Theatre mode';
       }
     });
@@ -552,12 +565,14 @@ document.addEventListener('DOMContentLoaded', function () {
     showControls();
     if (document.fullscreenElement) {
       container.classList.add('is-fullscreen');
-      fullscreenBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>';
+      while(fullscreenBtn.firstChild) fullscreenBtn.removeChild(fullscreenBtn.firstChild);
+      fullscreenBtn.appendChild(buildSvg('M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z',24,24,'currentColor'));
       fullscreenBtn.title = 'Exit fullscreen';
     } else {
       container.classList.remove('is-fullscreen');
       container.style.cursor = 'default';
-      fullscreenBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>';
+      while(fullscreenBtn.firstChild) fullscreenBtn.removeChild(fullscreenBtn.firstChild);
+      fullscreenBtn.appendChild(buildSvg('M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z',24,24,'currentColor'));
       fullscreenBtn.title = 'Fullscreen';
     }
   });

@@ -83,14 +83,26 @@ document.addEventListener('DOMContentLoaded', ()=>{
                     // data.subscribed, data.subs_count
                     const subscribeBtn = form.querySelector('.js-subscribe-btn') || document.querySelector('.js-subscribe-btn');
                     if(subscribeBtn) {
+                        // Safely build bell icon + label to avoid injecting raw HTML
+                        const ns = 'http://www.w3.org/2000/svg';
+                        function makeBellLabel(labelText){
+                            // clear
+                            while(subscribeBtn.firstChild) subscribeBtn.removeChild(subscribeBtn.firstChild);
+                            const svg = document.createElementNS(ns, 'svg');
+                            svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('width','18'); svg.setAttribute('height','18'); svg.setAttribute('fill','currentColor');
+                            const path = document.createElementNS(ns,'path');
+                            path.setAttribute('d','M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z');
+                            svg.appendChild(path);
+                            subscribeBtn.appendChild(svg);
+                            const span = document.createElement('span'); span.className = 'sub-text'; span.textContent = ' ' + labelText;
+                            subscribeBtn.appendChild(span);
+                        }
                         if(data.subscribed){
-                            subscribeBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg> Subscribed';
-                            subscribeBtn.classList.remove('btn-primary');
-                            subscribeBtn.classList.add('btn-accent');
+                            subscribeBtn.classList.remove('btn-primary'); subscribeBtn.classList.add('btn-accent');
+                            makeBellLabel('Subscribed');
                         } else {
-                            subscribeBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg> Subscribe';
-                            subscribeBtn.classList.remove('btn-accent');
-                            subscribeBtn.classList.add('btn-primary');
+                            subscribeBtn.classList.remove('btn-accent'); subscribeBtn.classList.add('btn-primary');
+                            makeBellLabel('Subscribe');
                         }
                     }
                     const subsCountEl = document.getElementById('subs-count');
@@ -98,16 +110,23 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 } else if(action === 'watch-later'){
                     const wlBtn = form.querySelector('.js-watch-later-btn') || document.querySelector('.js-watch-later-btn');
                     if(wlBtn && data.success){
+                        // create safe svg element
+                        const ns = 'http://www.w3.org/2000/svg';
+                        function makeSvgPath(d){ const svg = document.createElementNS(ns,'svg'); svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('width','18'); svg.setAttribute('height','18'); svg.setAttribute('fill','currentColor'); const p = document.createElementNS(ns,'path'); p.setAttribute('d', d); svg.appendChild(p); return svg; }
+                        const clockPath = 'M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z';
+                        while(wlBtn.firstChild) wlBtn.removeChild(wlBtn.firstChild);
                         if(data.in_watch_later){
-                            wlBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg> Saved to Watch Later';
                             wlBtn.classList.remove('btn-primary');
                             wlBtn.classList.add('btn-accent');
+                            wlBtn.appendChild(makeSvgPath(clockPath));
+                            const sp = document.createElement('span'); sp.textContent = ' Saved to Watch Later'; wlBtn.appendChild(sp);
                             // Update form action to remove
                             form.action = form.action.replace('/add/', '/remove/');
                         } else {
-                            wlBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg> Watch Later';
                             wlBtn.classList.remove('btn-accent');
                             wlBtn.classList.add('btn-primary');
+                            wlBtn.appendChild(makeSvgPath(clockPath));
+                            const sp = document.createElement('span'); sp.textContent = ' Watch Later'; wlBtn.appendChild(sp);
                             // Update form action to add
                             form.action = form.action.replace('/remove/', '/add/');
                         }
@@ -119,26 +138,38 @@ document.addEventListener('DOMContentLoaded', ()=>{
                         
                         if(isAdding){
                             // Changed to added state
-                            btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="var(--accent)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> ' + btn.textContent.trim();
+                            while(btn.firstChild) btn.removeChild(btn.firstChild);
+                            const ns='http://www.w3.org/2000/svg';
+                            const svgAdd=document.createElementNS(ns,'svg'); svgAdd.setAttribute('viewBox','0 0 24 24'); svgAdd.setAttribute('width','18'); svgAdd.setAttribute('height','18'); svgAdd.setAttribute('fill','var(--accent)'); const pAdd=document.createElementNS(ns,'path'); pAdd.setAttribute('d','M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'); svgAdd.appendChild(pAdd);
+                            btn.appendChild(svgAdd);
+                            const txt = document.createTextNode(' ' + btn.textContent.trim()); btn.appendChild(txt);
                             form.action = form.action.replace('/add/', '/remove/');
                         } else {
                             // Changed to removed state
-                            btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="transparent" style="border:1px solid var(--text-sec); border-radius:2px;"></svg> ' + btn.textContent.trim();
+                            while(btn.firstChild) btn.removeChild(btn.firstChild);
+                            const ns='http://www.w3.org/2000/svg';
+                            const svgRem=document.createElementNS(ns,'svg'); svgRem.setAttribute('viewBox','0 0 24 24'); svgRem.setAttribute('width','18'); svgRem.setAttribute('height','18'); svgRem.setAttribute('fill','transparent'); svgRem.style.border='1px solid var(--text-sec)'; svgRem.style.borderRadius='2px';
+                            btn.appendChild(svgRem);
+                            const txt2 = document.createTextNode(' ' + btn.textContent.trim()); btn.appendChild(txt2);
                             form.action = form.action.replace('/remove/', '/add/');
                         }
 
                         // Update main save button
                         const saveBtn = document.getElementById('vf-save-btn');
                         if(saveBtn){
+                            while(saveBtn.firstChild) saveBtn.removeChild(saveBtn.firstChild);
+                            const ns='http://www.w3.org/2000/svg';
+                            const svgSave=document.createElementNS(ns,'svg'); svgSave.setAttribute('viewBox','0 0 24 24'); svgSave.setAttribute('width','18'); svgSave.setAttribute('height','18'); svgSave.setAttribute('fill','currentColor'); const pSave=document.createElementNS(ns,'path'); pSave.setAttribute('d','M14 10H2v2h12v-2zm0-4H2v2h12V6zm4 8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM2 16h8v-2H2v2z'); svgSave.appendChild(pSave);
+                            saveBtn.appendChild(svgSave);
+                            const saveTxt = document.createElement('span');
                             if(data.is_saved_in_any){
-                                saveBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 10H2v2h12v-2zm0-4H2v2h12V6zm4 8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM2 16h8v-2H2v2z"/></svg> Saved';
-                                saveBtn.classList.remove('btn-primary');
-                                saveBtn.classList.add('btn-accent');
+                                saveTxt.textContent = ' Saved';
+                                saveBtn.classList.remove('btn-primary'); saveBtn.classList.add('btn-accent');
                             } else {
-                                saveBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 10H2v2h12v-2zm0-4H2v2h12V6zm4 8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM2 16h8v-2H2v2z"/></svg> Save';
-                                saveBtn.classList.remove('btn-accent');
-                                saveBtn.classList.add('btn-primary');
+                                saveTxt.textContent = ' Save';
+                                saveBtn.classList.remove('btn-accent'); saveBtn.classList.add('btn-primary');
                             }
+                            saveBtn.appendChild(saveTxt);
                         }
                     }
                 } else if(action === 'comment'){
@@ -149,30 +180,29 @@ document.addEventListener('DOMContentLoaded', ()=>{
                         div.id = 'comment-' + data.comment.id;
                         div.style.cssText = 'display:flex; gap:10px; margin-bottom:20px; animation: fadeIn 0.3s ease;';
                         
-                        let avatarHtml = '';
+                        // Build avatar node safely
+                        const anchor = document.createElement('a');
+                        anchor.href = data.comment.user_url || '#';
                         if(data.comment.profile_pic){
-                            avatarHtml = `<img src="${data.comment.profile_pic}" class="avatar" style="width:40px; height:40px; object-fit:cover;">`;
+                            const img = document.createElement('img'); img.src = data.comment.profile_pic; img.className = 'avatar'; img.style.width = '40px'; img.style.height = '40px'; img.style.objectFit = 'cover';
+                            anchor.appendChild(img);
                         } else {
-                            avatarHtml = `<div class="avatar" style="width:40px; height:40px;">${data.comment.initial}</div>`;
+                            const avatarDiv = document.createElement('div'); avatarDiv.className = 'avatar'; avatarDiv.style.width = '40px'; avatarDiv.style.height = '40px'; avatarDiv.textContent = data.comment.initial || '?';
+                            anchor.appendChild(avatarDiv);
                         }
-                        
-                        div.innerHTML = `
-                            <a href="${data.comment.user_url}">
-                                ${avatarHtml}
-                            </a>
-                            <div style="flex:1;">
-                                <div style="margin-bottom:4px;">
-                                    <a href="${data.comment.user_url}" style="font-weight:bold; font-size:0.9rem; margin-right:8px;">${data.comment.user}</a>
-                                    <span style="color:var(--text-sec); font-size:0.8rem;">${data.comment.date}</span>
-                                </div>
-                                <p style="margin:0; font-size:0.95rem;">${data.comment.content}</p>
-                            </div>
-                            <div>
-                                <form method="POST" action="/comment/${data.comment.id}/delete" class="js-async-form" data-action="delete-comment">
-                                    <button type="submit" class="btn" style="padding:4px 8px; font-size:0.8rem; opacity:0.7;" title="Delete">✕</button>
-                                </form>
-                            </div>
-                        `;
+                        div.appendChild(anchor);
+                        const main = document.createElement('div'); main.style.flex = '1';
+                        const meta = document.createElement('div'); meta.style.marginBottom = '4px';
+                        const userLink = document.createElement('a'); userLink.href = data.comment.user_url || '#'; userLink.style.fontWeight = 'bold'; userLink.style.fontSize = '0.9rem'; userLink.style.marginRight = '8px'; userLink.textContent = data.comment.user || 'User';
+                        const dateSpan = document.createElement('span'); dateSpan.style.color = 'var(--text-sec)'; dateSpan.style.fontSize = '0.8rem'; dateSpan.textContent = data.comment.date || '';
+                        meta.appendChild(userLink); meta.appendChild(dateSpan);
+                        const p = document.createElement('p'); p.style.margin = '0'; p.style.fontSize = '0.95rem'; p.textContent = data.comment.content || '';
+                        main.appendChild(meta); main.appendChild(p);
+                        div.appendChild(main);
+                        const right = document.createElement('div');
+                        const delForm = document.createElement('form'); delForm.method = 'POST'; delForm.action = '/comment/' + (data.comment.id) + '/delete'; delForm.className = 'js-async-form'; delForm.dataset.action = 'delete-comment';
+                        const delBtn = document.createElement('button'); delBtn.type = 'submit'; delBtn.className = 'btn'; delBtn.style.padding = '4px 8px'; delBtn.style.fontSize = '0.8rem'; delBtn.style.opacity = '0.7'; delBtn.title = 'Delete'; delBtn.textContent = '✕';
+                        delForm.appendChild(delBtn); right.appendChild(delForm); div.appendChild(right);
                         
                         list.insertBefore(div, list.firstChild);
                         form.reset();
