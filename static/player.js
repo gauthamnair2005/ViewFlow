@@ -207,13 +207,36 @@ document.addEventListener('DOMContentLoaded', function () {
     html5video.style.borderRadius = '12px';
     
     if (captionsSrc) {
-        var track = document.createElement('track');
-        track.kind = 'captions';
-        track.label = 'English';
-        track.srclang = 'en';
-        track.src = captionsSrc;
-        track.default = true;
-        html5video.appendChild(track);
+        // Validate captionsSrc: only allow same-origin http(s) URLs or safe relative VTT files
+        try {
+            var cs = captionsSrc.trim();
+            var allowedExts = ['.vtt', '.srt'];
+            var isValid = false;
+            try {
+                var capsUrl = new URL(cs, window.location.origin);
+                if ((capsUrl.protocol === 'http:' || capsUrl.protocol === 'https:') && capsUrl.origin === window.location.origin && allowedExts.some(function(e){ return capsUrl.pathname.toLowerCase().endsWith(e); })) {
+                    isValid = true;
+                    cs = capsUrl.href;
+                }
+            } catch(e) {
+                // fallback: allow relative paths that look like safe filenames
+                if (/^[a-zA-Z0-9_\-./%]+$/.test(cs) && !/^(data:|javascript:|vbscript:)/i.test(cs) && allowedExts.some(function(e){ return cs.toLowerCase().endsWith(e); })) {
+                    isValid = true;
+                    cs = new URL(cs, window.location.origin).href;
+                }
+            }
+            if (isValid) {
+                var track = document.createElement('track');
+                track.kind = 'captions';
+                track.label = 'English';
+                track.srclang = 'en';
+                track.src = cs;
+                track.default = true;
+                html5video.appendChild(track);
+            } else {
+                console.warn('Blocked unsafe captions source:', captionsSrc);
+            }
+        } catch (e) { console.warn('Captions parsing error', e); }
     }
 
     mediaWrap.innerHTML = '';
