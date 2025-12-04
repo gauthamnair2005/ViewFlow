@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 track.kind = 'captions';
                 track.label = 'English';
                 track.srclang = 'en';
-                track.src = cs;
+                try{ track.src = new URL(cs, window.location.origin).href; } catch(e){ track.src = cs; }
                 track.default = true;
                 html5video.appendChild(track);
             } else {
