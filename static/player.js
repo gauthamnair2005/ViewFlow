@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var resolutionsData = container.getAttribute('data-resolutions');
   var resolutions = [];
   try { resolutions = JSON.parse(resolutionsData); } catch(e) {}
+  var captionsSrc = container.getAttribute('data-captions');
 
   var qualityBtn = document.getElementById('vf-quality');
   var qualityMenu = document.getElementById('vf-quality-menu');
@@ -201,6 +202,17 @@ document.addEventListener('DOMContentLoaded', function () {
     html5video.style.width = '100%';
     html5video.style.maxHeight = '70vh';
     html5video.style.borderRadius = '12px';
+    
+    if (captionsSrc) {
+        var track = document.createElement('track');
+        track.kind = 'captions';
+        track.label = 'English';
+        track.srclang = 'en';
+        track.src = captionsSrc;
+        track.default = true;
+        html5video.appendChild(track);
+    }
+
     mediaWrap.innerHTML = '';
     mediaWrap.appendChild(html5video);
 

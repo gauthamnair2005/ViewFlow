@@ -95,6 +95,52 @@ document.addEventListener('DOMContentLoaded', ()=>{
                     }
                     const subsCountEl = document.getElementById('subs-count');
                     if(subsCountEl && data.subs_count !== undefined) subsCountEl.textContent = data.subs_count;
+                } else if(action === 'watch-later'){
+                    const wlBtn = form.querySelector('.js-watch-later-btn') || document.querySelector('.js-watch-later-btn');
+                    if(wlBtn && data.success){
+                        if(data.in_watch_later){
+                            wlBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg> Saved to Watch Later';
+                            wlBtn.classList.remove('btn-primary');
+                            wlBtn.classList.add('btn-accent');
+                            // Update form action to remove
+                            form.action = form.action.replace('/add/', '/remove/');
+                        } else {
+                            wlBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg> Watch Later';
+                            wlBtn.classList.remove('btn-accent');
+                            wlBtn.classList.add('btn-primary');
+                            // Update form action to add
+                            form.action = form.action.replace('/remove/', '/add/');
+                        }
+                    }
+                } else if(action === 'toggle-playlist'){
+                    if(data.success){
+                        const btn = form.querySelector('.js-playlist-btn');
+                        const isAdding = form.action.includes('/add/');
+                        
+                        if(isAdding){
+                            // Changed to added state
+                            btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="var(--accent)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> ' + btn.textContent.trim();
+                            form.action = form.action.replace('/add/', '/remove/');
+                        } else {
+                            // Changed to removed state
+                            btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="transparent" style="border:1px solid var(--text-sec); border-radius:2px;"></svg> ' + btn.textContent.trim();
+                            form.action = form.action.replace('/remove/', '/add/');
+                        }
+
+                        // Update main save button
+                        const saveBtn = document.getElementById('vf-save-btn');
+                        if(saveBtn){
+                            if(data.is_saved_in_any){
+                                saveBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 10H2v2h12v-2zm0-4H2v2h12V6zm4 8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM2 16h8v-2H2v2z"/></svg> Saved';
+                                saveBtn.classList.remove('btn-primary');
+                                saveBtn.classList.add('btn-accent');
+                            } else {
+                                saveBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 10H2v2h12v-2zm0-4H2v2h12V6zm4 8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM2 16h8v-2H2v2z"/></svg> Save';
+                                saveBtn.classList.remove('btn-accent');
+                                saveBtn.classList.add('btn-primary');
+                            }
+                        }
+                    }
                 } else if(action === 'comment'){
                     if(data.success && data.comment){
                         const list = document.getElementById('comments-list');

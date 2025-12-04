@@ -143,6 +143,7 @@ a { text-decoration: none; color: inherit; }
 .btn-primary { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border); }
 .btn-primary:hover { background: rgba(0,0,0,0.06); }
 .btn-accent { background: var(--accent); color: white; }
+.btn-sm { padding: 4px 10px; font-size: 0.85rem; height: auto; min-height: 0; }
 
 .container { margin-top: var(--nav-height); padding: 20px; max-width: 1200px; margin-left: auto; margin-right: auto; }
 
@@ -1286,19 +1287,20 @@ body.theatre-mode .video-meta {
 
 /* Icon-only Navbar Buttons */
 .nav-btn {
-    padding: 8px;
-    border-radius: 50%; /* Circular buttons */
-    width: 40px;
-    height: 40px;
+    padding: 6px;
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s, transform 0.2s;
+    transition: background 0.2s, transform 0.2s, border-radius 0.2s;
 }
 
 .nav-btn:hover {
     background: rgba(255, 255, 255, 0.1);
     transform: scale(1.05);
+    border-radius: 50%;
 }
 
 .btn-accent.nav-btn:hover {

@@ -46,6 +46,37 @@ class Video(db.Model):
     status = db.Column(db.String(20), default='ready')  # processing, ready, failed
     heatmap = db.Column(db.Text, default='[]')  # JSON list of 100 ints
     preview_images = db.Column(db.Text, nullable=True)  # JSON list of filenames
+    captions = db.Column(db.String(300), nullable=True)  # Path to .vtt file
+
+
+class Playlist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    is_public = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref='playlists', lazy=True)
+    videos = db.relationship('PlaylistVideo', backref='playlist', lazy=True, cascade="all, delete-orphan")
+
+
+class PlaylistVideo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    playlist_id = db.Column(db.Integer, db.ForeignKey('playlist.id'), nullable=False)
+    video_id = db.Column(db.Integer, db.ForeignKey('video.id'), nullable=False)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    video = db.relationship('Video', lazy=True)
+
+
+class WatchLater(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    video_id = db.Column(db.Integer, db.ForeignKey('video.id'), nullable=False)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref='watch_later', lazy=True)
+    video = db.relationship('Video', lazy=True)
 
 
 class Subscription(db.Model):

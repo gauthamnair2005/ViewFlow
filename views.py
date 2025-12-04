@@ -4,7 +4,7 @@ import random
 import threading
 from flask import Blueprint, render_template, request, redirect, url_for, send_from_directory, flash, current_app, abort, jsonify
 from werkzeug.utils import secure_filename
-from models import db, Video, User, Reaction, Subscription, Comment, ViewHistory
+from models import db, Video, User, Reaction, Subscription, Comment, ViewHistory, Playlist, PlaylistVideo, WatchLater
 from flask_login import current_user, login_required
 from datetime import datetime
 
@@ -144,9 +144,23 @@ def watch(video_id):
         s = Subscription.query.filter_by(subscriber_id=current_user.id, channel_id=video.user_id).first()
         is_subscribed = bool(s)
     
+    user_playlists = []
+    is_watch_later = False
+    is_saved = False
+    saved_playlist_ids = []
+    if current_user.is_authenticated:
+        user_playlists = Playlist.query.filter_by(user_id=current_user.id).all()
+        is_watch_later = WatchLater.query.filter_by(user_id=current_user.id, video_id=video_id).first() is not None
+        if user_playlists:
+            p_ids = [p.id for p in user_playlists]
+            existing = PlaylistVideo.query.filter(PlaylistVideo.playlist_id.in_(p_ids), PlaylistVideo.video_id == video_id).all()
+            saved_playlist_ids = [e.playlist_id for e in existing]
+            is_saved = len(saved_playlist_ids) > 0
+
     return render_template('watch.html', title=video.title, video=video, recommended=recommended,
                            likes=likes, dislikes=dislikes, is_liked=is_liked, is_disliked=is_disliked,
-                           is_subscribed=is_subscribed, comments=comments)
+                           is_subscribed=is_subscribed, comments=comments, user_playlists=user_playlists, is_watch_later=is_watch_later, is_saved=is_saved,
+                           saved_playlist_ids=saved_playlist_ids)
 
 
 @main_bp.route('/uploads/<path:filename>')
@@ -181,6 +195,15 @@ def upload():
             save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], save_name)
             file.save(save_path)
 
+            captions_file = request.files.get('captions')
+            captions_path = None
+            if captions_file and captions_file.filename != '':
+                c_filename = secure_filename(captions_file.filename)
+                c_save_name = f"{timestamp}_{c_filename}"
+                c_save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], c_save_name)
+                captions_file.save(c_save_path)
+                captions_path = c_save_name
+
             # create video record first (thumbnail will be generated asynchronously)
             new_video = Video(
                 title=title,
@@ -190,7 +213,8 @@ def upload():
                 is_public=is_public,
                 thumbnail=None,
                 category=category,
-                tags=tags
+                tags=tags,
+                captions=captions_path
             )
             db.session.add(new_video)
             db.session.commit()
@@ -309,7 +333,15 @@ def user_profile(username):
     if current_user.is_authenticated:
         is_subscribed = Subscription.query.filter_by(channel_id=user.id, subscriber_id=current_user.id).first() is not None
 
-    return render_template('user.html', title=user.display_name or user.username, channel=user, videos=videos, subs_count=subs_count, is_subscribed=is_subscribed)
+    # Playlists and Watch Later (only for owner)
+    playlists = []
+    watch_later_videos = []
+    if current_user.is_authenticated and current_user.id == user.id:
+        playlists = Playlist.query.filter_by(user_id=user.id).order_by(Playlist.created_at.desc()).all()
+        wl_items = WatchLater.query.filter_by(user_id=user.id).order_by(WatchLater.added_at.desc()).all()
+        watch_later_videos = [item.video for item in wl_items]
+
+    return render_template('user.html', title=user.display_name or user.username, channel=user, videos=videos, subs_count=subs_count, is_subscribed=is_subscribed, playlists=playlists, watch_later_videos=watch_later_videos)
 
 
 def is_ajax(request):
@@ -470,6 +502,127 @@ def delete_comment(comment_id):
         
     flash('Comment deleted')
     return redirect(url_for('main.watch', video_id=video_id))
+
+
+@main_bp.route('/playlists')
+@login_required
+def playlists():
+    user_playlists = Playlist.query.filter_by(user_id=current_user.id).order_by(Playlist.created_at.desc()).all()
+    return render_template('playlists.html', title='My Playlists', playlists=user_playlists)
+
+
+@main_bp.route('/playlist/create', methods=['POST'])
+@login_required
+def create_playlist():
+    name = request.form.get('name')
+    if name:
+        p = Playlist(name=name, user_id=current_user.id)
+        db.session.add(p)
+        db.session.commit()
+        flash('Playlist created')
+    return redirect(url_for('main.playlists'))
+
+
+@main_bp.route('/playlist/<int:playlist_id>')
+def view_playlist(playlist_id):
+    playlist = Playlist.query.get_or_404(playlist_id)
+    if not playlist.is_public and (not current_user.is_authenticated or current_user.id != playlist.user_id):
+        abort(403)
+    
+    videos = [pv.video for pv in playlist.videos]
+    return render_template('playlist.html', title=playlist.name, playlist=playlist, videos=videos)
+
+
+@main_bp.route('/playlist/<int:playlist_id>/add/<int:video_id>', methods=['POST'])
+@login_required
+def add_to_playlist(playlist_id, video_id):
+    playlist = Playlist.query.get_or_404(playlist_id)
+    if playlist.user_id != current_user.id:
+        abort(403)
+    
+    exists = PlaylistVideo.query.filter_by(playlist_id=playlist_id, video_id=video_id).first()
+    if not exists:
+        pv = PlaylistVideo(playlist_id=playlist_id, video_id=video_id)
+        db.session.add(pv)
+        db.session.commit()
+        if is_ajax(request):
+            return jsonify({'success': True, 'is_saved_in_any': True})
+        flash('Added to playlist')
+    else:
+        if is_ajax(request):
+            return jsonify({'success': False, 'message': 'Already in playlist', 'is_saved_in_any': True})
+            
+    return redirect(url_for('main.watch', video_id=video_id))
+
+
+@main_bp.route('/playlist/<int:playlist_id>/remove/<int:video_id>', methods=['POST'])
+@login_required
+def remove_from_playlist(playlist_id, video_id):
+    playlist = Playlist.query.get_or_404(playlist_id)
+    if playlist.user_id != current_user.id:
+        abort(403)
+        
+    pv = PlaylistVideo.query.filter_by(playlist_id=playlist_id, video_id=video_id).first()
+    if pv:
+        db.session.delete(pv)
+        db.session.commit()
+        
+        # Check if saved in any other playlist
+        user_playlists = Playlist.query.filter_by(user_id=current_user.id).all()
+        is_saved_in_any = False
+        if user_playlists:
+            p_ids = [p.id for p in user_playlists]
+            is_saved_in_any = PlaylistVideo.query.filter(PlaylistVideo.playlist_id.in_(p_ids), PlaylistVideo.video_id == video_id).first() is not None
+            
+        if is_ajax(request):
+            return jsonify({'success': True, 'is_saved_in_any': is_saved_in_any})
+        flash('Removed from playlist')
+    
+    return redirect(url_for('main.view_playlist', playlist_id=playlist_id))
+
+
+@main_bp.route('/watch-later')
+@login_required
+def watch_later():
+    wl_items = WatchLater.query.filter_by(user_id=current_user.id).order_by(WatchLater.added_at.desc()).all()
+    videos = [item.video for item in wl_items]
+    return render_template('watch_later.html', title='Watch Later', videos=videos)
+
+
+@main_bp.route('/watch-later/add/<int:video_id>', methods=['POST'])
+@login_required
+def add_to_watch_later(video_id):
+    exists = WatchLater.query.filter_by(user_id=current_user.id, video_id=video_id).first()
+    if not exists:
+        wl = WatchLater(user_id=current_user.id, video_id=video_id)
+        db.session.add(wl)
+        db.session.commit()
+        if is_ajax(request):
+            return jsonify({'success': True, 'in_watch_later': True})
+        flash('Added to Watch Later')
+    else:
+        if is_ajax(request):
+            return jsonify({'success': False, 'message': 'Already in Watch Later', 'in_watch_later': True})
+            
+    return redirect(url_for('main.watch', video_id=video_id))
+
+
+@main_bp.route('/watch-later/remove/<int:video_id>', methods=['POST'])
+@login_required
+def remove_from_watch_later(video_id):
+    wl = WatchLater.query.filter_by(user_id=current_user.id, video_id=video_id).first()
+    if wl:
+        db.session.delete(wl)
+        db.session.commit()
+        if is_ajax(request):
+            return jsonify({'success': True, 'in_watch_later': False})
+        flash('Removed from Watch Later')
+    else:
+        if is_ajax(request):
+            return jsonify({'success': False, 'in_watch_later': False})
+
+    return redirect(url_for('main.watch_later'))
+
 
 @main_bp.route('/search')
 def search():

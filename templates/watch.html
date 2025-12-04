@@ -18,7 +18,7 @@
                 <p style="color:#aaa;">Something went wrong while processing this video.</p>
             </div>
             {% else %}
-            <div id="vf-player" class="vf-player" data-video-id="{{ video.id }}" data-video-src="{{ url_for('main.uploaded_file', filename=video.filename) }}" data-youtube="{{ video.youtube_url|default('') }}" data-resolutions='{{ resolutions|default([])|tojson }}' data-previews='{{ video.preview_images|default("[]") }}'>
+            <div id="vf-player" class="vf-player" data-video-id="{{ video.id }}" data-video-src="{{ url_for('main.uploaded_file', filename=video.filename) }}" data-youtube="{{ video.youtube_url|default('') }}" data-resolutions='{{ resolutions|default([])|tojson }}' data-previews='{{ video.preview_images|default("[]") }}' data-captions="{{ url_for('main.uploaded_file', filename=video.captions) if video.captions else '' }}">
                 <canvas id="internal-ambient-canvas" class="internal-ambient"></canvas>
                 <div class="vf-media" id="vf-media"></div>
 
@@ -83,6 +83,47 @@
                             <input type="hidden" name="action" value="dislike" />
                             <button type="submit" class="btn js-dislike-btn {% if is_disliked %}btn-accent{% else %}btn-primary{% endif %}" style="display:flex; align-items:center; gap:6px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v1.91l.01.01L1 14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg> <span id="dislikes-count">{{ dislikes }}</span></button>
                         </form>
+
+                        {% if current_user.is_authenticated %}
+                        <form method="POST" action="{{ url_for('main.add_to_watch_later' if not is_watch_later else 'main.remove_from_watch_later', video_id=video.id) }}" style="display:inline" class="js-async-form" data-action="watch-later">
+                            <button type="submit" class="btn js-watch-later-btn {% if is_watch_later %}btn-accent{% else %}btn-primary{% endif %}" title="Watch Later" style="display:flex; align-items:center; gap:6px;">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                                {% if is_watch_later %}Saved to Watch Later{% else %}Watch Later{% endif %}
+                            </button>
+                        </form>
+                        
+                        <div class="dropdown" style="display:inline-block; position:relative;">
+                            <button id="vf-save-btn" class="btn {% if is_saved %}btn-accent{% else %}btn-primary{% endif %}" onclick="document.getElementById('playlist-menu').style.display = document.getElementById('playlist-menu').style.display === 'none' ? 'block' : 'none'" style="display:flex; align-items:center; gap:6px;">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 10H2v2h12v-2zm0-4H2v2h12V6zm4 8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM2 16h8v-2H2v2z"/></svg>
+                                {% if is_saved %}Saved{% else %}Save{% endif %}
+                            </button>
+                            <div id="playlist-menu" class="vf-menu" style="display:none; position:absolute; top:100%; right:0; background:var(--card-bg); border:1px solid var(--border); border-radius:4px; padding:10px; min-width:200px; z-index:100;">
+                                <h4 style="margin:0 0 10px 0; font-size:1rem;">Save to...</h4>
+                                {% for p in user_playlists %}
+                                {% if p.id in saved_playlist_ids %}
+                                <form method="POST" action="{{ url_for('main.remove_from_playlist', playlist_id=p.id, video_id=video.id) }}" class="js-async-form" data-action="toggle-playlist">
+                                    <button type="submit" class="btn js-playlist-btn" style="width:100%; text-align:left; background:transparent; margin-bottom:5px; display:flex; align-items:center; gap:8px;">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="var(--accent)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                                        {{ p.name }}
+                                    </button>
+                                </form>
+                                {% else %}
+                                <form method="POST" action="{{ url_for('main.add_to_playlist', playlist_id=p.id, video_id=video.id) }}" class="js-async-form" data-action="toggle-playlist">
+                                    <button type="submit" class="btn js-playlist-btn" style="width:100%; text-align:left; background:transparent; margin-bottom:5px; display:flex; align-items:center; gap:8px;">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="transparent" style="border:1px solid var(--text-sec); border-radius:2px;"></svg>
+                                        {{ p.name }}
+                                    </button>
+                                </form>
+                                {% endif %}
+                                {% endfor %}
+                                <hr style="border-color:var(--border); margin:5px 0;">
+                                <form method="POST" action="{{ url_for('main.create_playlist') }}" style="margin-top:5px;">
+                                    <input type="text" name="name" placeholder="New Playlist Name" style="width:100%; margin-bottom:5px; padding:5px;">
+                                    <button type="submit" class="btn btn-accent" style="width:100%; font-size:0.8rem;">Create</button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 <div>
