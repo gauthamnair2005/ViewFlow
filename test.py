@@ -24,7 +24,7 @@ import wave
 import markdown
 import bleach
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 # ==========================================
 # CONFIGURATION

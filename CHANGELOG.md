@@ -2,12 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.0] - 2025-12-04
-### Added
-- Initial stable release: feature-complete core functionality, improved voice recommendations, and UI updates.
+## [1.0.1] - 2025-12-04
 
 ### Fixed
-- Bug fixes and performance improvements across the application.
+- Security hardening and CodeQL fixes: captions handling and safe DOM updates in static/player.js.
 
 ## [1.0.0] - 2025-12-04
 
