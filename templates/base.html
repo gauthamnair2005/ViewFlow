@@ -14,7 +14,7 @@
     {% else %}
     <link rel="stylesheet" href="https://vjs.zencdn.net/8.20.0/video-js.css">
     {% endif %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=0.9.3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.0.0">
     <style>
         .upload-badge {
             position: absolute;
@@ -182,7 +182,7 @@
     </div>
     <footer>
         <p>Developed by <strong>Gautham Nair</strong> & <strong>Deepak Patel</strong></p>
-        <p>&copy; 2025 View<span>Flow</span> Project <span style="color: var(--text-sec); font-size: 0.85rem;">v0.9.2</span></p>
+        <p>&copy; 2025 View<span>Flow</span> Project <span style="color: var(--text-sec); font-size: 0.85rem;">v1.0.0</span></p>
     </footer>
     {% if config.VIDEOJS_LOCAL %}
     <script src="{{ url_for('static', filename='vendor/video.min.js') }}"></script>
@@ -191,7 +191,7 @@
     {% endif %}
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
     <script src="{{ url_for('static', filename='player.js') }}"></script>
-    <script src="{{ url_for('static', filename='async_actions.js') }}?v=0.9.2"></script>
+    <script src="{{ url_for('static', filename='async_actions.js') }}?v=1.0.0"></script>
     <script>
         let pendingForm = null;
 

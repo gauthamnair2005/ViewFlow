@@ -1507,6 +1507,20 @@ body.theatre-mode .video-meta {
     .js-subscribe-btn svg { width:20px; height:20px; }
 }
 
+/* Ensure like/dislike/watch-later/save/subscribe share same visual height */
+.js-like-btn, .js-dislike-btn, .js-watch-later-btn, #vf-save-btn, .js-subscribe-btn {
+    height: 40px;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+.js-like-btn span, .js-dislike-btn span { margin-left: 6px; }
+
+
 /* Action row: keep actions horizontally aligned */
 .action-row { display:flex; gap:8px; align-items:center; flex-wrap:nowrap; }
 .action-row .btn { white-space:nowrap; }

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0] - 2025-12-04
+### Added
+- Initial stable release: feature-complete core functionality, improved voice recommendations, and UI updates.
+
+### Fixed
+- Bug fixes and performance improvements across the application.
+
+## [1.0.0] - 2025-12-04
+
+### Release
+- Bumped version to 1.0.0; includes the security fixes and improvements from 0.9.x.
+
 ## [0.9.2] - 2025-12-04
 
 ### Security
