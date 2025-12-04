@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Watch Later</h2>
+    <div class="video-grid">
+        {% for video in videos %}
+        <div class="video-card">
+            <a href="{{ url_for('main.watch', video_id=video.id) }}">
+                <div class="thumbnail">
+                    {% if video.thumbnail %}
+                    <img src="{{ url_for('main.uploaded_file', filename=video.thumbnail) }}" alt="{{ video.title }}">
+                    {% else %}
+                    <span class="thumbnail-icon"><svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+                    {% endif %}
+                    <div class="duration">0:00</div>
+                </div>
+            </a>
+            <div class="video-info">
+                <div class="details">
+                    <a href="{{ url_for('main.watch', video_id=video.id) }}"><h3>{{ video.title }}</h3></a>
+                    <a href="{{ url_for('main.user_profile', username=video.uploader.username) }}" class="channel-name" style="color:var(--text-sec); font-size:0.9rem;">{{ video.uploader.display_name or video.uploader.username }}</a>
+                    <div class="meta" style="color:var(--text-sec); font-size:0.85rem;">{{ video.views }} views • {{ video.upload_date|format_date }}</div>
+                </div>
+            </div>
+            <div class="video-controls">
+                <form method="POST" action="{{ url_for('main.remove_from_watch_later', video_id=video.id) }}">
+                    <button type="submit" class="btn btn-primary btn-sm" style="display:flex; align-items:center; gap:4px;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                        Remove
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <p>No videos in Watch Later.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

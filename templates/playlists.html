@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>My Playlists</h2>
+    <div class="video-grid">
+        {% for playlist in playlists %}
+        <div class="video-card">
+            <a href="{{ url_for('main.view_playlist', playlist_id=playlist.id) }}">
+                <div class="thumbnail">
+                    <span class="thumbnail-icon"><svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor"><path d="M14 10H2v2h12v-2zm0-4H2v2h12V6zm4 8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM2 16h8v-2H2v2z"/></svg></span>
+                </div>
+            </a>
+            <div class="video-info">
+                <div class="details">
+                    <a href="{{ url_for('main.view_playlist', playlist_id=playlist.id) }}"><h3>{{ playlist.name }}</h3></a>
+                    <p style="color:var(--text-sec);">{{ playlist.videos|length }} videos</p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <p>No playlists yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
