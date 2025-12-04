@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.2] - 2025-12-04
+
+### Security
+- **Fixed DOM-based XSS Vulnerability**:
+  - Patched `static/player.js` to strictly validate video URLs and ensure they are assigned only to `<video>` elements.
+  - Replaced direct `src` property assignment with `setAttribute('src', ...)` for safer handling.
+  - Hardened `getSafeVideoUrl` to always return canonical absolute URLs, preventing relative path exploits.
+  - Resolved CodeQL alert for "DOM text reinterpreted as HTML".
+
 ## [0.9.1] - 2025-12-03
 
 ### Added
