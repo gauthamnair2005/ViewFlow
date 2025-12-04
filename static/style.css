@@ -532,7 +532,7 @@ footer p { margin: 6px 0; }
 
 @media (max-width: 700px) {
     .recommended-card { flex-direction: column; align-items: stretch; }
-    .rec-thumb { width: 100%; height: 160px; }
+    .rec-thumb { width: 100%; height: auto; aspect-ratio: 16/9; }
     .rec-meta { margin-top: 10px; }
 }
 .video-row {
@@ -568,6 +568,8 @@ footer p { margin: 6px 0; }
     .video-info { justify-content: flex-start; margin-top: 8px; width: 100%; }
     .video-row .thumbnail { width: 100%; height: 160px; }
     .video-row .video-info .description { max-width: 100%; }
+    .thumbnail { width: 100% !important; height: auto !important; aspect-ratio: 16/9; }
+    .thumbnail img { height: 100% !important; }
 }
 
 /* Controls below each card (owner actions) */
@@ -1348,3 +1350,164 @@ body.theatre-mode .video-meta {
 .suggestion-item svg {
     opacity: 0.7;
 }
+
+/* Mobile Drawer Styles */
+.mobile-menu-btn {
+    display: none;
+    margin-left: 10px;
+}
+
+.mobile-drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+.mobile-drawer-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mobile-drawer {
+    position: fixed;
+    top: 0;
+    right: -300px;
+    width: 280px;
+    height: 100%;
+    background: var(--card-bg);
+    z-index: 2000;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -4px 0 24px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(12px);
+    border-left: 1px solid var(--border);
+}
+.mobile-drawer.open {
+    transform: translateX(-300px);
+}
+
+.drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+}
+.drawer-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+.drawer-content {
+    padding: 20px;
+    overflow-y: auto;
+}
+.drawer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.drawer-item {
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s;
+    align-items: center;
+    font-size: 1rem;
+}
+.drawer-item:hover {
+    background: var(--btn-bg);
+}
+.drawer-item svg {
+    margin-right: 12px;
+    min-width: 24px;
+}
+
+.nav-text {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    .nav-links {
+        display: none;
+    }
+    .mobile-menu-btn {
+        display: flex;
+    }
+    .search-form {
+        margin-right: 0;
+        max-width: 100%;
+        flex: 1;
+    }
+}
+
+/* Additional mobile improvements: make body content stack and scale better */
+@media (max-width: 700px) {
+    .container { padding: 12px; max-width: 100%; }
+    .video-grid, .recommended-grid, .video-list { display: block; }
+    .video-card, .recommended-card, .video-row { width: 100% !important; max-width: 100% !important; flex: none; padding: 8px 0; }
+    .thumbnail, .rec-thumb { width: 100% !important; height: auto !important; aspect-ratio: 16/9; }
+    .video-info, .rec-meta, .details { flex-direction: column; align-items: stretch; }
+    .card-main { flex-direction: column; gap: 12px; }
+    .watch-container { flex-direction: column; gap: 12px; }
+    .main-player, .sidebar { min-width: 0; width: 100%; }
+    .sidebar { order: 2; }
+    .video-meta { padding: 12px 0; }
+    .search-form { max-width: none; flex: 1 1 auto; }
+    .recommended-card { padding: 8px 0; }
+    .video-row .thumbnail { width: 100%; height: 160px; }
+    .video-info { margin-top: 8px; width: 100%; }
+    .rec-meta { max-width: 100%; }
+    .nav-text { display: none; }
+    .nav-avatar, .nav-avatar-placeholder { width: 36px; height: 36px; }
+    .drawer-links .drawer-item { padding: 10px; }
+
+    /* Homepage specific: make recommended-grid single-column with compact spacing */
+    .recommended-grid { display: flex; flex-direction: column; gap: 12px; }
+    .recommended-card { flex-direction: column; align-items: stretch; gap: 8px; }
+    .rec-thumb { width: 100%; height: auto; border-radius: 8px; }
+    h2 { font-size: 1.1rem; margin: 12px 0; }
+    .rec-title { font-size: 1rem; }
+}
+
+/* Icon-only buttons: hide inline text and keep svg visible */
+.js-watch-later-btn, #vf-save-btn { font-size: 0; line-height: 0; width: 40px; height: 40px; min-width: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 8px; border-radius: 8px; }
+.js-watch-later-btn svg, #vf-save-btn svg { width: 20px; height: 20px; }
+.js-watch-later-btn:focus, #vf-save-btn:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Align like/dislike with same height as icon-only buttons */
+.js-like-btn, .js-dislike-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0 12px;
+    border-radius: 8px;
+}
+.js-like-btn svg, .js-dislike-btn svg { width: 18px; height: 18px; }
+.js-like-btn span, .js-dislike-btn span { font-size: 0.95rem; line-height: 1; }
+
+/* Ensure all four controls share same box-sizing and visual baseline */
+.js-like-btn, .js-dislike-btn, .js-watch-later-btn, #vf-save-btn { box-sizing: border-box; }
+
+/* Mobile-only: align subscribe to right and show only bell */
+@media (max-width: 700px) {
+    .subscribe-container { display:flex; justify-content:flex-end; align-items:center; }
+    .subscribe-container .sub-text { display:none; }
+    .js-subscribe-btn { width: 40px; height: 40px; padding: 8px; display:inline-flex; align-items:center; justify-content:center; font-size:0; }
+    .js-subscribe-btn svg { width:20px; height:20px; }
+}
+
+/* Action row: keep actions horizontally aligned */
+.action-row { display:flex; gap:8px; align-items:center; flex-wrap:nowrap; }
+.action-row .btn { white-space:nowrap; }
+@media (max-width:700px) { .action-row { overflow-x:auto; padding-bottom:6px; } }
