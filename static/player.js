@@ -85,12 +85,146 @@ document.addEventListener('DOMContentLoaded', function () {
       });
       
       qualityBtn.addEventListener('click', function(e) {
+          // toggle menu and prevent the global click handler from immediately closing it
           e.stopPropagation();
-          qualityMenu.style.display = qualityMenu.style.display === 'block' ? 'none' : 'block';
+          if (!qualityMenu) return;
+          var isOpen = qualityMenu.style.display === 'block';
+          qualityMenu.style.display = isOpen ? 'none' : 'block';
       });
       
-      document.addEventListener('click', function() {
-          qualityMenu.style.display = 'none';
+      // Replace qualityMenu contents with a Gaussian-blur styled cascading menu (main -> submenu)
+      (function(){
+          if (!qualityMenu) return;
+          if (speedBtn) speedBtn.style.display = 'none';
+
+          // style the menu for blur/backdrop
+          qualityMenu.style.backdropFilter = 'blur(8px)';
+          qualityMenu.style.webkitBackdropFilter = 'blur(8px)';
+          qualityMenu.style.background = 'rgba(0,0,0,0.45)';
+          qualityMenu.style.border = '1px solid rgba(255,255,255,0.06)';
+          qualityMenu.style.minWidth = '160px';
+          qualityMenu.innerHTML = '';
+
+          // Main entries container
+          var mainList = document.createElement('div');
+          mainList.style.display = 'flex';
+          mainList.style.flexDirection = 'column';
+
+          function makeMainItem(label, hasSub) {
+              var it = document.createElement('div');
+              it.className = 'vf-menu-item';
+              it.style.padding = '8px 10px';
+              it.style.cursor = 'pointer';
+              it.style.color = '#fff';
+              it.style.display = 'flex';
+              it.style.justifyContent = 'space-between';
+              it.style.alignItems = 'center';
+
+              var txt = document.createElement('div');
+              txt.textContent = label;
+              txt.style.fontSize = '0.95rem';
+              it.appendChild(txt);
+
+              if (hasSub) {
+                  var arrow = document.createElement('div');
+                  arrow.innerHTML = '\u25B6'; // small triangle
+                  arrow.style.opacity = '0.7';
+                  it.appendChild(arrow);
+              }
+
+              it.addEventListener('mouseenter', function() { it.style.background = 'rgba(255,255,255,0.06)'; });
+              it.addEventListener('mouseleave', function() { it.style.background = 'transparent'; });
+              return it;
+          }
+
+          // Submenu container (positioned to the right)
+          var subMenu = document.createElement('div');
+          subMenu.style.position = 'absolute';
+          subMenu.style.left = '100%';
+          subMenu.style.top = '0';
+          subMenu.style.display = 'none';
+          subMenu.style.minWidth = '160px';
+          subMenu.style.padding = '6px 0';
+          subMenu.style.background = 'rgba(0,0,0,0.45)';
+          subMenu.style.border = '1px solid rgba(255,255,255,0.06)';
+          subMenu.style.backdropFilter = 'blur(8px)';
+
+          // Quality main item
+          var qualityItem = makeMainItem('Quality', true);
+          var qualityOptions = document.createElement('div');
+          qualityOptions.style.display = 'flex';
+          qualityOptions.style.flexDirection = 'column';
+
+          resolutions.forEach(function(res) {
+              var opt = document.createElement('div');
+              opt.textContent = res.label;
+              opt.style.padding = '6px 12px';
+              opt.style.cursor = 'pointer';
+              opt.style.color = '#fff';
+              opt.addEventListener('mouseenter', function(){ opt.style.background = 'rgba(255,255,255,0.08)'; });
+              opt.addEventListener('mouseleave', function(){ opt.style.background = 'transparent'; });
+              opt.addEventListener('click', function(){
+                  changeQuality(res);
+                  qualityMenu.style.display = 'none';
+                  subMenu.style.display = 'none';
+              });
+              qualityOptions.appendChild(opt);
+          });
+
+          // Speed main item
+          var speedItem = makeMainItem('Speed', true);
+          var speedOptions = document.createElement('div');
+          speedOptions.style.display = 'flex';
+          speedOptions.style.flexDirection = 'column';
+          var rates = [0.5,1,1.5,2];
+          rates.forEach(function(r) {
+              var opt = document.createElement('div');
+              opt.textContent = r + 'x';
+              opt.style.padding = '6px 12px';
+              opt.style.cursor = 'pointer';
+              opt.style.color = '#fff';
+              opt.addEventListener('mouseenter', function(){ opt.style.background = 'rgba(255,255,255,0.08)'; });
+              opt.addEventListener('mouseleave', function(){ opt.style.background = 'transparent'; });
+              opt.addEventListener('click', function(){
+                  try { if (html5video) html5video.playbackRate = r; else if (ytPlayer && ytReady) try { ytPlayer.setPlaybackRate(r); } catch(e){} } catch(e){}
+                  if (speedBtn) speedBtn.textContent = r + 'x';
+                  qualityMenu.style.display = 'none';
+                  subMenu.style.display = 'none';
+              });
+              speedOptions.appendChild(opt);
+          });
+
+          // wire hover behavior: show appropriate submenu
+          qualityItem.addEventListener('mouseenter', function() {
+              subMenu.innerHTML = '';
+              subMenu.appendChild(qualityOptions);
+              subMenu.style.display = 'block';
+          });
+          speedItem.addEventListener('mouseenter', function() {
+              subMenu.innerHTML = '';
+              subMenu.appendChild(speedOptions);
+              subMenu.style.display = 'block';
+          });
+
+          mainList.appendChild(qualityItem);
+          mainList.appendChild(speedItem);
+
+          qualityMenu.appendChild(mainList);
+          qualityMenu.appendChild(subMenu);
+
+          // close submenu if mouse leaves the menu area
+          qualityMenu.addEventListener('mouseleave', function(){ subMenu.style.display = 'none'; });
+      })();
+
+      document.addEventListener('click', function(ev) {
+          try {
+              var target = ev.target;
+              if (!qualityMenu) return;
+              // if the click was inside the quality button or the menu, don't close
+              if (qualityBtn && (qualityBtn === target || qualityBtn.contains(target))) return;
+              if (qualityMenu.contains(target)) return;
+              qualityMenu.style.display = 'none';
+          } catch (e) { qualityMenu.style.display = 'none'; }
       });
   } else {
       if (qualityBtn) qualityBtn.style.display = 'none';

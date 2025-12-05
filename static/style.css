@@ -635,6 +635,31 @@ footer p { margin: 6px 0; }
 .vjs-suggestions { z-index: 30; }
 .vf-player { z-index: 2; }
 
+/* Gaussian blur for floating menus */
+.vf-menu, #search-suggestions, .search-suggestions, .upload-tooltip, .vjs-suggestions-inner, .mobile-drawer, .drawer-content, .drawer-header, .drawer-item {
+    /* Match topbar/player blur: stronger blur + subtle gradient to emulate glass */
+    backdrop-filter: blur(8px) saturate(120%);
+    -webkit-backdrop-filter: blur(8px) saturate(120%);
+    isolation: isolate; /* ensure backdrop filter applies cleanly */
+    border-radius: 8px;
+    padding: 6px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+    will-change: backdrop-filter, transform, opacity;
+}
+/* Dark theme glass */
+body.theme-dark .vf-menu, body.theme-dark #search-suggestions, body.theme-dark .upload-tooltip, body.theme-dark .vjs-suggestions-inner {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.04);
+}
+/* Light theme glass */
+body.theme-light .vf-menu, body.theme-light #search-suggestions, body.theme-light .upload-tooltip, body.theme-light .vjs-suggestions-inner {
+    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.5));
+    border: 1px solid rgba(0,0,0,0.06);
+}
+
+#search-suggestions { position: absolute; top: 100%; left: 0; right: 0; z-index: 120; display: none; overflow: hidden; }
+
+
 /* Big play overlay centered */
 .vf-bigplay { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background: rgba(0,0,0,0.65); border-radius:50%; width:96px; height:96px; display:flex; align-items:center; justify-content:center; font-size:34px; color: var(--text-main); cursor:pointer; transition: transform 0.12s ease, opacity 0.12s ease, background 0.2s ease; z-index: 35; }
 .vf-bigplay:hover { background: rgba(0,0,0,0.85); transform:translate(-50%,-50%) scale(1.05); }
@@ -818,6 +843,19 @@ textarea::placeholder {
 /* Range Input */
 input[type="range"] {
     height: 6px;
+}
+
+/* Ensure player control SVGs render crisply like topbar icons */
+.vf-quality-wrapper svg, .vf-btn svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+    fill: currentColor !important;
+    stroke: none !important;
+    shape-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+}
+body.theme-dark .vf-btn svg { color: var(--text-main) !important; }
     background: var(--progress-bg);
     border-radius: 999px;
     outline: none;
@@ -1329,7 +1367,9 @@ body.theatre-mode .video-meta {
     box-shadow: 0 8px 24px rgba(0,0,0,0.25);
     display: none;
     overflow: hidden;
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(18px) saturate(120%);
+    -webkit-backdrop-filter: blur(18px) saturate(120%);
+    isolation: isolate;
     padding: 8px 0;
 }
 
