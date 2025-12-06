@@ -488,6 +488,12 @@ def init_db():
                         conn.commit()
                     except Exception:
                         pass
+                if 'is_short' not in video_cols:
+                    try:
+                        conn.execute(text("ALTER TABLE video ADD COLUMN is_short BOOLEAN DEFAULT 0"))
+                        conn.commit()
+                    except Exception:
+                        pass
 
             # user table columns
             try:
