@@ -118,6 +118,7 @@ class Video(db.Model):
     heatmap = db.Column(db.Text, default='[]')
     preview_images = db.Column(db.Text, nullable=True)
     captions = db.Column(db.String(300), nullable=True)
+    is_short = db.Column(db.Boolean, default=False)
 
 
 class Playlist(db.Model):
