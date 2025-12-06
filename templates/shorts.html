@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="shorts-container" style="display:flex; justify-content:center; align-items:center; height:80vh;">
+  <div id="vf-shorts-player" class="vf-shorts-player" data-video-src="{{ url_for('main.uploaded_file', filename=video.filename) }}" data-video-id="{{ video.id }}">
+    <video id="shorts-video" playsinline muted loop></video>
+    <div class="shorts-overlay" style="position:absolute; bottom:10px; left:10px; color:white; text-shadow:0 1px 4px rgba(0,0,0,0.6);">
+      <div style="font-weight:bold; font-size:1.1rem;">{{ video.title }}</div>
+      <div style="font-size:0.9rem; color:rgba(255,255,255,0.85);">{{ video.uploader.display_name or video.uploader.username }}</div>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    var container = document.getElementById('vf-shorts-player');
+    var v = document.getElementById('shorts-video');
+    var src = container.getAttribute('data-video-src');
+    if(!src || !v) return;
+    v.src = src;
+    v.muted = true;
+    v.autoplay = true;
+    v.loop = true;
+    v.preload = 'metadata';
+    v.style.maxHeight = '100%';
+    v.style.maxWidth = '100%';
+    v.style.objectFit = 'cover';
+    v.addEventListener('loadedmetadata', function(){
+      var w = v.videoWidth, h = v.videoHeight, dur = v.duration || 0;
+      var ar = (w && h) ? (w/h) : 1;
+      // apply CSS based on aspect ratio
+      if (ar >= 1.6) { // wide
+        container.style.width = '60%';
+      } else if (ar >= 1.0) {
+        container.style.width = '50%';
+      } else { // tall
+        container.style.width = '40%';
+      }
+      // append duration display
+      var d = document.createElement('div'); d.style.position='absolute'; d.style.top='10px'; d.style.right='10px'; d.style.color='white'; d.style.textShadow='0 1px 2px rgba(0,0,0,0.6)'; d.textContent = Math.round(dur) + 's'; container.appendChild(d);
+      v.play();
+    });
+  }catch(e){console.warn(e)}
+});
+</script>
+{% endblock %}

@@ -165,7 +165,8 @@ def watch(video_id):
         else:
             base = os.path.splitext(video.filename)[0]
             for fname in os.listdir(current_app.config['UPLOAD_FOLDER']):
-                if fname.startswith(base) and fname.endswith('_auto.vtt'):
+                # accept variations like *_auto.vtt and *_10min_auto.vtt
+                if fname.startswith(base) and ('_auto.vtt' in fname):
                     auto_caption_url = url_for('main.uploaded_file', filename=fname)
                     break
     except Exception:
@@ -175,6 +176,17 @@ def watch(video_id):
                            likes=likes, dislikes=dislikes, is_liked=is_liked, is_disliked=is_disliked,
                            is_subscribed=is_subscribed, comments=comments, user_playlists=user_playlists, is_watch_later=is_watch_later, is_saved=is_saved,
                            saved_playlist_ids=saved_playlist_ids, auto_caption_url=auto_caption_url)
+
+
+@main_bp.route('/shorts/<int:video_id>')
+def shorts(video_id):
+    video = Video.query.get_or_404(video_id)
+    # Only allow public or owner
+    if not video.is_public:
+        if not (current_user.is_authenticated and current_user.id == video.user_id):
+            abort(404)
+    # minimal metadata for shorts
+    return render_template('shorts.html', title=video.title, video=video)
 
 
 @main_bp.route('/uploads/<path:filename>')
