@@ -16,7 +16,8 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 * 1024  # 16GB max
-    app.config['VOSK_MODEL_PATH'] = os.environ.get('VOSK_MODEL_PATH', os.path.join(UPLOAD_FOLDER, 'models', 'vosk-model-small-en-us-0.15'))
+    # Prefer bundled model in repo/models if present, fallback to uploads/models if env set
+    app.config['VOSK_MODEL_PATH'] = os.environ.get('VOSK_MODEL_PATH', os.path.join(BASE_DIR, 'models', 'vosk-model-small-en-us-0.15'))
 
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
@@ -97,6 +98,8 @@ def create_app():
                     conn.execute(text("ALTER TABLE video ADD COLUMN tags TEXT"))
                 if 'captions' not in vcol_names:
                     conn.execute(text("ALTER TABLE video ADD COLUMN captions TEXT"))
+                if 'auto_captions' not in vcol_names:
+                    conn.execute(text("ALTER TABLE video ADD COLUMN auto_captions TEXT"))
             except Exception:
                 pass
             conn.close()

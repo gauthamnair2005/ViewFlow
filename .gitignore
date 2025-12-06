@@ -16,3 +16,6 @@ node_modules/
 viewflow.db
 *.db
 uploads/
+# Keep bundled models in repo
+!models/
+

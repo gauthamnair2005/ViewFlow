@@ -157,10 +157,24 @@ def watch(video_id):
             saved_playlist_ids = [e.playlist_id for e in existing]
             is_saved = len(saved_playlist_ids) > 0
 
+    # detect auto-generated captions file (if any) matching the uploaded filename base
+    auto_caption_url = ''
+    try:
+        if getattr(video, 'auto_captions', None):
+            auto_caption_url = url_for('main.uploaded_file', filename=video.auto_captions)
+        else:
+            base = os.path.splitext(video.filename)[0]
+            for fname in os.listdir(current_app.config['UPLOAD_FOLDER']):
+                if fname.startswith(base) and fname.endswith('_auto.vtt'):
+                    auto_caption_url = url_for('main.uploaded_file', filename=fname)
+                    break
+    except Exception:
+        auto_caption_url = ''
+
     return render_template('watch.html', title=video.title, video=video, recommended=recommended,
                            likes=likes, dislikes=dislikes, is_liked=is_liked, is_disliked=is_disliked,
                            is_subscribed=is_subscribed, comments=comments, user_playlists=user_playlists, is_watch_later=is_watch_later, is_saved=is_saved,
-                           saved_playlist_ids=saved_playlist_ids)
+                           saved_playlist_ids=saved_playlist_ids, auto_caption_url=auto_caption_url)
 
 
 @main_bp.route('/uploads/<path:filename>')
@@ -269,6 +283,116 @@ def upload():
             thread = threading.Thread(target=_generate_thumbnail, args=(app_obj, new_video.id, save_path, filename, timestamp))
             thread.daemon = True
             thread.start()
+
+            # Start background thread to auto-generate captions (does not overwrite user-provided captions)
+            def _generate_captions(app, vid_id, saved_path, orig_filename, ts):
+                try:
+                    with app.app_context():
+                        import shutil, subprocess, wave, json
+                        import speech_recognition as sr
+                        from vosk import Model, KaldiRecognizer
+                        UPLOAD_FOLDER = app.config['UPLOAD_FOLDER']
+
+                        base = os.path.splitext(orig_filename)[0]
+                        auto_name = f"{ts}_{base}_auto.vtt"
+                        auto_path = os.path.join(UPLOAD_FOLDER, auto_name)
+
+                        # Extract audio to WAV
+                        wav_path = os.path.join(UPLOAD_FOLDER, f"{ts}_{base}_audio.wav")
+                        try:
+                            subprocess.run(['ffmpeg', '-i', saved_path, '-ac', '1', '-ar', '16000', wav_path, '-y'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=120)
+                        except Exception:
+                            if os.path.exists(wav_path): os.remove(wav_path)
+                            return
+
+                        duration = None
+                        try:
+                            proc = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', saved_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+                            if proc.returncode == 0:
+                                duration = float(proc.stdout.strip())
+                        except Exception:
+                            duration = None
+
+                        transcript = ''
+                        # try Vosk offline if available
+                        try:
+                            model_path = app.config.get('VOSK_MODEL_PATH')
+                            if model_path and os.path.exists(model_path):
+                                wf = wave.open(wav_path, 'rb')
+                                model = Model(model_path)
+                                rec = KaldiRecognizer(model, wf.getframerate())
+                                rec.SetWords(False)
+                                while True:
+                                    buf = wf.readframes(4000)
+                                    if len(buf) == 0: break
+                                    rec.AcceptWaveform(buf)
+                                final = json.loads(rec.FinalResult())
+                                transcript = final.get('text', '')
+                                wf.close()
+                        except Exception:
+                            transcript = ''
+
+                        # fallback to Google (requires internet)
+                        if not transcript:
+                            try:
+                                r = sr.Recognizer()
+                                with sr.AudioFile(wav_path) as source:
+                                    audio_data = r.record(source)
+                                    transcript = r.recognize_google(audio_data)
+                            except Exception:
+                                transcript = ''
+
+                        # Build simple WebVTT by chunking words across duration
+                        if transcript:
+                            words = transcript.split()
+                            if duration and duration > 0:
+                                cue_len = 4.0
+                                cues = []
+                                i = 0
+                                wps = len(words) / duration if duration>0 else 2
+                                while i < len(words):
+                                    start_sec = (i / wps) if wps>0 else 0
+                                    j = i + int(cue_len * wps)
+                                    if j <= i: j = min(i+10, len(words))
+                                    end_sec = (j / wps) if wps>0 else (start_sec + cue_len)
+                                    text = ' '.join(words[i:j])
+                                    cues.append((start_sec, end_sec, text))
+                                    i = j
+                            else:
+                                cues = [(0.0, max(4.0, len(transcript.split())/2.0), transcript)]
+
+                            try:
+                                with open(auto_path, 'w', encoding='utf-8') as f:
+                                    f.write('WEBVTT\n\n')
+                                    for s,e,t in cues:
+                                        def fmt(x):
+                                            h = int(x//3600); m = int((x%3600)//60); sss = int(x%60); ms = int((x - int(x))*1000)
+                                            return f"{h:02d}:{m:02d}:{sss:02d}.{ms:03d}"
+                                        f.write(f"{fmt(s)} --> {fmt(e)}\n{t}\n\n")
+                                # update DB record with auto caption filename
+                                try:
+                                    v = Video.query.get(vid_id)
+                                    if v:
+                                        v.auto_captions = auto_name
+                                        db.session.commit()
+                                except Exception:
+                                    try: db.session.rollback()
+                                    except Exception: pass
+                            except Exception:
+                                pass
+
+                        if os.path.exists(wav_path):
+                            try: os.remove(wav_path)
+                            except Exception: pass
+                except Exception:
+                    try:
+                        pass
+                    except Exception:
+                        pass
+
+            cap_thread = threading.Thread(target=_generate_captions, args=(app_obj, new_video.id, save_path, filename, timestamp))
+            cap_thread.daemon = True
+            cap_thread.start()
 
             return redirect(url_for('main.home'))
         else:

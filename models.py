@@ -47,6 +47,7 @@ class Video(db.Model):
     heatmap = db.Column(db.Text, default='[]')  # JSON list of 100 ints
     preview_images = db.Column(db.Text, nullable=True)  # JSON list of filenames
     captions = db.Column(db.String(300), nullable=True)  # Path to .vtt file
+    auto_captions = db.Column(db.String(300), nullable=True)  # Path to auto-generated .vtt file
 
 
 class Playlist(db.Model):

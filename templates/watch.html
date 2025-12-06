@@ -18,7 +18,7 @@
                 <p style="color:#aaa;">Something went wrong while processing this video.</p>
             </div>
             {% else %}
-            <div id="vf-player" class="vf-player" data-video-id="{{ video.id }}" data-video-src="{{ url_for('main.uploaded_file', filename=video.filename) }}" data-youtube="{{ video.youtube_url|default('') }}" data-resolutions='{{ resolutions|default([])|tojson }}' data-previews='{{ video.preview_images|default("[]") }}' data-captions="{{ url_for('main.uploaded_file', filename=video.captions) if video.captions else '' }}">
+            <div id="vf-player" class="vf-player" data-video-id="{{ video.id }}" data-video-src="{{ url_for('main.uploaded_file', filename=video.filename) }}" data-youtube="{{ video.youtube_url|default('') }}" data-resolutions='{{ resolutions|default([])|tojson }}' data-previews='{{ video.preview_images|default("[]") }}' data-captions="{{ url_for('main.uploaded_file', filename=video.captions) if video.captions else '' }}" data-autocaptions="{{ auto_caption_url }}">
                 <canvas id="internal-ambient-canvas" class="internal-ambient"></canvas>
                 <div class="vf-media" id="vf-media"></div>
 

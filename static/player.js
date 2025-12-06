@@ -32,6 +32,11 @@ document.addEventListener('DOMContentLoaded', function () {
   var resolutions = [];
   try { resolutions = JSON.parse(resolutionsData); } catch(e) {}
   var captionsSrc = container.getAttribute('data-captions');
+  var autoCaptionsSrc = container.getAttribute('data-autocaptions');
+  var captionsTrack = null; // will hold reference to HTMLTrackElement if assigned
+  var savedSpeed = localStorage.getItem('vf_speed');
+  var savedQuality = localStorage.getItem('vf_quality');
+  var savedCaptions = localStorage.getItem('vf_captions');
 
   var qualityBtn = document.getElementById('vf-quality');
   var qualityMenu = document.getElementById('vf-quality-menu');
@@ -47,16 +52,22 @@ document.addEventListener('DOMContentLoaded', function () {
       // Auto-select best resolution based on screen height
       var screenHeight = window.screen.height * (window.devicePixelRatio || 1);
       var bestRes = resolutions[0]; // Default to max
-      
+
+      // If user has a saved quality preference, try to honor it
+      try { if (savedQuality) {
+          for (var si=0; si<resolutions.length; si++) {
+              if (String(resolutions[si].label) === String(savedQuality)) { bestRes = resolutions[si]; break; }
+          }
+      }} catch(e) {}
+
       // Find the largest resolution that fits within screen height (or closest)
       for (var i = 0; i < resolutions.length; i++) {
           var h = parseInt(resolutions[i].label);
           if (h && h <= screenHeight) {
-              bestRes = resolutions[i];
-              break;
+              if (!savedQuality) { bestRes = resolutions[i]; break; }
           }
       }
-      
+
       // Apply best resolution initially if not original
       if (bestRes && bestRes !== resolutions[0]) {
           // Update videoSrc so initHTML5 uses the best resolution
@@ -73,14 +84,20 @@ document.addEventListener('DOMContentLoaded', function () {
           item.style.cursor = 'pointer';
           item.style.color = '#fff';
           item.style.fontSize = '0.9rem';
+          // tick indicator
+          var tick = document.createElement('span'); tick.textContent = '✓'; tick.style.marginLeft = '8px'; tick.style.opacity = '0'; item.appendChild(tick);
           if (res === bestRes) item.style.fontWeight = 'bold';
           
           item.addEventListener('mouseover', function() { item.style.background = 'rgba(255,255,255,0.2)'; });
           item.addEventListener('mouseout', function() { item.style.background = 'transparent'; });
           item.addEventListener('click', function() {
               changeQuality(res);
+              try { localStorage.setItem('vf_quality', res.label); } catch(e) {}
+              // update ticks
+              Array.from(qualityMenu.querySelectorAll('div')).forEach(function(c){ var sp=c.querySelector('span'); if(sp) sp.style.opacity = (c === item) ? '1' : '0'; });
               qualityMenu.style.display = 'none';
           });
+          if (savedQuality && savedQuality === res.label) tick.style.opacity = '1';
           qualityMenu.appendChild(item);
       });
       
@@ -209,6 +226,31 @@ document.addEventListener('DOMContentLoaded', function () {
           mainList.appendChild(qualityItem);
           mainList.appendChild(speedItem);
 
+          // Captions item
+          var captionsItem = makeMainItem('Captions', true);
+          var captionsOptions = document.createElement('div');
+          captionsOptions.style.display = 'flex';
+          captionsOptions.style.flexDirection = 'column';
+          var capOff = document.createElement('div'); capOff.textContent = 'Off'; capOff.style.padding = '6px 12px'; capOff.style.cursor = 'pointer'; capOff.style.color = '#fff'; var capOffTick = document.createElement('span'); capOffTick.textContent='✓'; capOffTick.style.marginLeft='8px'; capOffTick.style.opacity='0'; capOff.appendChild(capOffTick); capOff.addEventListener('mouseenter', function(){ capOff.style.background = 'rgba(255,255,255,0.08)'; }); capOff.addEventListener('mouseleave', function(){ capOff.style.background = 'transparent'; }); capOff.addEventListener('click', function(){ setCaptionsEnabled(false); try { localStorage.setItem('vf_captions','off'); } catch(e){}; Array.from(captionsOptions.children).forEach(function(c){ var sp=c.querySelector('span'); if(sp) sp.style.opacity = (c === capOff) ? '1' : '0'; }); qualityMenu.style.display = 'none'; subMenu.style.display = 'none'; }); captionsOptions.appendChild(capOff);
+          var capOn = document.createElement('div'); capOn.textContent = 'On'; capOn.style.padding = '6px 12px'; capOn.style.cursor = 'pointer'; capOn.style.color = '#fff'; var capOnTick = document.createElement('span'); capOnTick.textContent='✓'; capOnTick.style.marginLeft='8px'; capOnTick.style.opacity='0'; capOn.appendChild(capOnTick); capOn.addEventListener('mouseenter', function(){ capOn.style.background = 'rgba(255,255,255,0.08)'; }); capOn.addEventListener('mouseleave', function(){ capOn.style.background = 'transparent'; }); capOn.addEventListener('click', function(){ setCaptionsEnabled(true); try { localStorage.setItem('vf_captions','on'); } catch(e){}; Array.from(captionsOptions.children).forEach(function(c){ var sp=c.querySelector('span'); if(sp) sp.style.opacity = (c === capOn) ? '1' : '0'; }); qualityMenu.style.display = 'none'; subMenu.style.display = 'none'; }); captionsOptions.appendChild(capOn);
+          // Auto-generated captions option (if available)
+          if (autoCaptionsSrc) {
+              var capAuto = document.createElement('div'); capAuto.textContent = 'Auto (AI)'; capAuto.style.padding = '6px 12px'; capAuto.style.cursor = 'pointer'; capAuto.style.color = '#fff'; var capAutoTick = document.createElement('span'); capAutoTick.textContent='✓'; capAutoTick.style.marginLeft='8px'; capAutoTick.style.opacity='0'; capAuto.appendChild(capAutoTick); capAuto.addEventListener('mouseenter', function(){ capAuto.style.background = 'rgba(255,255,255,0.08)'; }); capAuto.addEventListener('mouseleave', function(){ capAuto.style.background = 'transparent'; }); capAuto.addEventListener('click', function(){ loadAutoCaptions(autoCaptionsSrc); try { localStorage.setItem('vf_captions','auto'); } catch(e){}; Array.from(captionsOptions.children).forEach(function(c){ var sp=c.querySelector('span'); if(sp) sp.style.opacity = (c === capAuto) ? '1' : '0'; }); qualityMenu.style.display = 'none'; subMenu.style.display = 'none'; }); captionsOptions.appendChild(capAuto);
+          }
+          captionsItem.addEventListener('mouseenter', function() { subMenu.innerHTML = ''; subMenu.appendChild(captionsOptions); subMenu.style.display = 'block'; });
+
+          // Initialize caption tick based on saved preference
+          try {
+              var sc = savedCaptions || null;
+              if (sc === 'off') capOff.querySelector('span').style.opacity = '1';
+              else if (sc === 'on') capOn.querySelector('span').style.opacity = '1';
+              else if (sc === 'auto' && autoCaptionsSrc) {
+                  var autoSpan = captionsOptions.querySelector('div:last-child span'); if (autoSpan) autoSpan.style.opacity = '1';
+              }
+          } catch(e) {}
+
+          mainList.appendChild(captionsItem);
+
           qualityMenu.appendChild(mainList);
           qualityMenu.appendChild(subMenu);
 
@@ -230,6 +272,31 @@ document.addEventListener('DOMContentLoaded', function () {
       if (qualityBtn) qualityBtn.style.display = 'none';
   }
 
+  function setCaptionsEnabled(on) {
+    try {
+      if (html5video) {
+        if (captionsTrack) captionsTrack.mode = on ? 'showing' : 'disabled';
+        else if (html5video.textTracks && html5video.textTracks.length) {
+          for (var i = 0; i < html5video.textTracks.length; i++) html5video.textTracks[i].mode = on ? 'showing' : 'disabled';
+        }
+      }
+    } catch (e) { console.warn('Captions toggle failed', e); }
+  }
+
+  function loadAutoCaptions(src) {
+    try {
+      if (!src) return;
+      // if we already have a captionsTrack from user file, keep it but also add auto as separate track
+      if (html5video) {
+        var t = document.createElement('track');
+        t.kind = 'captions';
+        t.label = 'Auto-Captions';
+        t.srclang = 'en';
+        // fetch and assign blob URL (same-origin URL already validated by server)
+        fetch(src, {credentials: 'same-origin'}).then(function(resp){ if(!resp.ok) return; return resp.blob(); }).then(function(b){ if(!b) return; var u = URL.createObjectURL(b); t.src = u; t.default = false; html5video.appendChild(t); captionsTrack = t; setCaptionsEnabled(true); }).catch(function(e){ console.warn('Failed to load auto captions', e); });
+      }
+    } catch (e) { console.warn('loadAutoCaptions error', e); }
+  }
   function changeQuality(res) {
       if (!html5video) return;
       var currentTime = html5video.currentTime;
@@ -377,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     return;
                                 }
                                 return resp.blob();
-                            }).then(function(b){ if(!b) return; var objectUrl = URL.createObjectURL(b); track.src = objectUrl; track.default = true; html5video.appendChild(track); }).catch(function(err){ console.warn('Captions fetch error', err); });
+                            }).then(function(b){ if(!b) return; var objectUrl = URL.createObjectURL(b); track.src = objectUrl; track.default = false; html5video.appendChild(track); captionsTrack = track; }).catch(function(err){ console.warn('Captions fetch error', err); });
                         } else {
                             console.warn('Blocked captions that are not same-origin:', cs);
                         }
@@ -391,6 +458,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     mediaWrap.innerHTML = '';
     mediaWrap.appendChild(html5video);
+
+    // Apply saved speed preference
+    try {
+        if (savedSpeed && html5video) {
+            var sp = parseFloat(savedSpeed);
+            if (!isNaN(sp)) {
+                html5video.playbackRate = sp;
+                if (speedBtn) speedBtn.textContent = sp + 'x';
+            }
+        }
+        // Apply saved captions preference
+        if (savedCaptions) {
+            if (savedCaptions === 'on') setCaptionsEnabled(true);
+            else if (savedCaptions === 'off') setCaptionsEnabled(false);
+            else if (savedCaptions === 'auto' && autoCaptionsSrc) loadAutoCaptions(autoCaptionsSrc);
+        }
+    } catch(e) { console.warn('Apply saved prefs error', e); }
 
     html5video.addEventListener('loadedmetadata', function () {
       updateTime();
