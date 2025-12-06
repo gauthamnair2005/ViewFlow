@@ -1,34 +1,44 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="shorts-container" style="display:flex; justify-content:center; align-items:flex-start; height:64vh; padding-top:64px;">
-  <div id="vf-shorts-player" class="vf-shorts-player" data-video-src="{{ url_for('main.uploaded_file', filename=video.filename) }}" data-video-id="{{ video.id }}">
-    <video id="shorts-video" playsinline muted loop></video>
-    <div class="shorts-overlay" style="position:absolute; bottom:10px; left:10px; color:white; text-shadow:0 1px 4px rgba(0,0,0,0.6);">
-      <div style="font-weight:bold; font-size:1.1rem;">{{ video.title }}</div>
-      <div style="font-size:0.9rem; color:rgba(255,255,255,0.85);">{{ video.uploader.display_name or video.uploader.username }}</div>
+  <style>
+    /* Arrange player and details side-by-side */
+    .shorts-row { display:flex; gap:24px; align-items:flex-start; width:100%; justify-content:center; }
+    .vf-shorts-player { position:relative; }
+    .shorts-details { text-align:left; }
+    .shorts-details .btn { padding:10px 14px; font-size:0.95rem; }
+    footer { position:relative; z-index:1; clear:both; margin-top:28px; }
+    @media(max-width:900px){ .shorts-row { flex-direction:column; align-items:center } .shorts-details { width:90% !important } }
+  </style>
+  <div class="shorts-row">
+    <div id="vf-shorts-player" class="vf-shorts-player" data-video-src="{{ url_for('main.uploaded_file', filename=video.filename) }}" data-video-id="{{ video.id }}">
+      <video id="shorts-video" playsinline muted loop></video>
+      <div class="shorts-overlay" style="position:absolute; bottom:10px; left:10px; color:white; text-shadow:0 1px 4px rgba(0,0,0,0.6);">
+        <div style="font-weight:bold; font-size:1rem;">{{ video.title }}</div>
+        <div style="font-size:0.85rem; color:rgba(255,255,255,0.85);">{{ video.uploader.display_name or video.uploader.username }}</div>
+      </div>
     </div>
-  </div>
-  <div class="shorts-details" style="width:48%; max-width:640px; margin-top:8px; color:var(--text-main);">
+    <div class="shorts-details" style="width:48%; max-width:640px; margin-top:0px; color:var(--text-main); font-size:1.05rem;">
     <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-      <div style="display:flex; gap:12px; align-items:center;">
+      <div style="display:flex; gap:14px; align-items:center;">
         {% if video.uploader.profile_pic %}
-        <img src="{{ url_for('main.uploaded_file', filename=video.uploader.profile_pic) }}" alt="{{ video.uploader.username }}" style="width:48px; height:48px; border-radius:50%; object-fit:cover;">
+        <img src="{{ url_for('main.uploaded_file', filename=video.uploader.profile_pic) }}" alt="{{ video.uploader.username }}" style="width:64px; height:64px; border-radius:50%; object-fit:cover;">
         {% else %}
-        <div style="width:48px; height:48px; border-radius:50%; background:var(--muted); display:flex; align-items:center; justify-content:center;">{{ video.uploader.username[0].upper() }}</div>
+        <div style="width:64px; height:64px; border-radius:50%; background:var(--muted); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">{{ video.uploader.username[0].upper() }}</div>
         {% endif %}
         <div>
-          <div style="font-weight:600;">{{ video.uploader.display_name or video.uploader.username }}</div>
-          <div style="font-size:0.85rem; color:var(--text-sec);">{{ video.views }} views • {{ video.upload_date|format_date }}</div>
+          <div style="font-size:1.05rem; font-weight:700;">{{ video.uploader.display_name or video.uploader.username }}</div>
+          <div style="font-size:0.95rem; color:var(--text-sec);">{{ video.views }} views • {{ video.upload_date|format_date }}</div>
         </div>
       </div>
-      <div style="display:flex; gap:8px; align-items:center;">
+      <div style="display:flex; gap:10px; align-items:center;">
         <button class="btn btn-primary" id="shorts-like-btn">👍 Like</button>
         <a href="{{ url_for('main.watch', video_id=video.id) }}" class="btn">Open in full player</a>
       </div>
     </div>
     <div style="margin-top:12px; color:var(--text-sec);">{{ video.description }}</div>
+    </div>
   </div>
-</div>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   try{
