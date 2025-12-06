@@ -24,9 +24,17 @@
     <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
       <div style="display:flex; gap:14px; align-items:center;">
         {% if video.uploader.profile_pic %}
-        <img src="{{ url_for('main.uploaded_file', filename=video.uploader.profile_pic) }}" alt="{{ video.uploader.username }}" style="width:64px; height:64px; border-radius:50%; object-fit:cover;">
+        <!-- use SVG wrapper when profile pic exists to keep consistency -->
+        <svg width="64" height="64" viewBox="0 0 64 64" style="border-radius:50%; overflow:hidden; display:block;">
+          <defs><clipPath id="c-{{ video.uploader.id }}"><circle cx="32" cy="32" r="32"/></clipPath></defs>
+          <image clip-path="url(#c-{{ video.uploader.id }})" href="{{ url_for('main.uploaded_file', filename=video.uploader.profile_pic) }}" width="64" height="64" preserveAspectRatio="xMidYMid slice"></image>
+        </svg>
         {% else %}
-        <div style="width:64px; height:64px; border-radius:50%; background:var(--muted); display:flex; align-items:center; justify-content:center; font-size:1.2rem;">{{ video.uploader.username[0].upper() }}</div>
+        <!-- SVG initial avatar -->
+        <svg width="64" height="64" viewBox="0 0 64 64" style="border-radius:50%; background:var(--muted); display:block;">
+          <rect width="100%" height="100%" fill="var(--muted)"></rect>
+          <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-size="28" fill="var(--text-main)" font-family="Inter, Arial, sans-serif">{{ video.uploader.username[0].upper() }}</text>
+        </svg>
         {% endif %}
         <div>
           <div style="font-size:1.05rem; font-weight:700;">{{ video.uploader.display_name or video.uploader.username }}</div>
@@ -35,7 +43,8 @@
       </div>
       <div style="display:flex; gap:10px; align-items:center;">
         <button class="btn btn-primary" id="shorts-like-btn">👍 Like</button>
-        <a href="{{ url_for('main.watch', video_id=video.id) }}" class="btn">Open in full player</a>
+-        <a href="{{ url_for('main.watch', video_id=video.id) }}" class="btn">Open in full player</a>
++        <a href="{{ url_for('main.user_profile', username=video.uploader.username) }}" class="btn">Visit channel</a>
       </div>
     </div>
     <div style="margin-top:12px; color:var(--text-sec);">{{ video.description }}</div>
