@@ -100,6 +100,8 @@ def create_app():
                     conn.execute(text("ALTER TABLE video ADD COLUMN captions TEXT"))
                 if 'auto_captions' not in vcol_names:
                     conn.execute(text("ALTER TABLE video ADD COLUMN auto_captions TEXT"))
+                if 'is_short' not in vcol_names:
+                    conn.execute(text("ALTER TABLE video ADD COLUMN is_short BOOLEAN DEFAULT 0"))
             except Exception:
                 pass
             conn.close()

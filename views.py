@@ -230,6 +230,19 @@ def upload():
                 captions_file.save(c_save_path)
                 captions_path = c_save_name
 
+            # determine aspect ratio to mark as short (portrait-ish)
+            is_short_flag = False
+            try:
+                probe = subprocess.run(['ffprobe','-v','error','-select_streams','v:0','-show_entries','stream=width,height','-of','default=noprint_wrappers=1:nokey=1', save_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=5)
+                out = probe.stdout.strip().split('\n')
+                if len(out) >= 2:
+                    w = float(out[0])
+                    h = float(out[1])
+                    if h > 0 and (w / h) < 0.9:
+                        is_short_flag = True
+            except Exception:
+                is_short_flag = False
+
             # create video record first (thumbnail will be generated asynchronously)
             new_video = Video(
                 title=title,
@@ -240,7 +253,8 @@ def upload():
                 thumbnail=None,
                 category=category,
                 tags=tags,
-                captions=captions_path
+                captions=captions_path,
+                is_short=is_short_flag
             )
             db.session.add(new_video)
             db.session.commit()

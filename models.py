@@ -48,6 +48,7 @@ class Video(db.Model):
     preview_images = db.Column(db.Text, nullable=True)  # JSON list of filenames
     captions = db.Column(db.String(300), nullable=True)  # Path to .vtt file
     auto_captions = db.Column(db.String(300), nullable=True)  # Path to auto-generated .vtt file
+    is_short = db.Column(db.Boolean, default=False)
 
 
 class Playlist(db.Model):
