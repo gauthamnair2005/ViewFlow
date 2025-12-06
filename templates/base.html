@@ -191,6 +191,7 @@
     {% endif %}
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
     <script src="{{ url_for('static', filename='player.js') }}"></script>
+    <!-- shorts player uses same player.js initializer -->
     <script src="{{ url_for('static', filename='async_actions.js') }}?v=1.0.0"></script>
     <script>
         let pendingForm = null;

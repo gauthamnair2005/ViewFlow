@@ -11,7 +11,7 @@
             <div class="recommended-grid">
                 {% for video in videos %}
                 <article class="recommended-card">
-                    <a href="{{ url_for('main.watch', video_id=video.id) }}">
+                    <a href="{{ url_for('main.shorts', video_id=video.id) if video.is_short else url_for('main.watch', video_id=video.id) }}">
                         <div class="rec-thumb">
                             {% if video.thumbnail %}
                                 <img src="{{ url_for('main.uploaded_file', filename=video.thumbnail) }}" alt="{{ video.title }}">

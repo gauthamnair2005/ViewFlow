@@ -5,7 +5,7 @@
     <div class="video-grid">
         {% for video in videos %}
         <div class="video-card">
-            <a href="{{ url_for('main.watch', video_id=video.id) }}">
+            <a href="{{ url_for('main.shorts', video_id=video.id) if video.is_short else url_for('main.watch', video_id=video.id) }}">
                 <div class="thumbnail">
                     {% if video.thumbnail %}
                     <img src="{{ url_for('main.uploaded_file', filename=video.thumbnail) }}" alt="{{ video.title }}">
@@ -17,7 +17,7 @@
             </a>
             <div class="video-info">
                 <div class="details">
-                    <a href="{{ url_for('main.watch', video_id=video.id) }}"><h3>{{ video.title }}</h3></a>
+                    <a href="{{ url_for('main.shorts', video_id=video.id) if video.is_short else url_for('main.watch', video_id=video.id) }}"><h3>{{ video.title }}</h3></a>
                     <a href="{{ url_for('main.user_profile', username=video.uploader.username) }}" class="channel-name" style="color:var(--text-sec); font-size:0.9rem;">{{ video.uploader.display_name or video.uploader.username }}</a>
                     <div class="meta" style="color:var(--text-sec); font-size:0.85rem;">{{ video.views }} views • {{ video.upload_date|format_date }}</div>
                 </div>

@@ -30,7 +30,7 @@
         </div>
         <div style="display:flex; gap:10px;">
             <button type="submit" class="btn btn-accent">Save Changes</button>
-            <a href="{{ url_for('main.watch', video_id=video.id) }}" class="btn">Cancel</a>
+            <a href="{{ url_for('main.shorts', video_id=video.id) if video.is_short else url_for('main.watch', video_id=video.id) }}" class="btn">Cancel</a>
         </div>
     </form>
 </div>
