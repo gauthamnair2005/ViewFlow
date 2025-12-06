@@ -13,3 +13,4 @@ bleach>=6.0.0
 
 # Optional (useful for production testing)
 gunicorn>=20.1.0
+urllib3>=1.26.16,<3.0
