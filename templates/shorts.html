@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="shorts-container" style="display:flex; justify-content:center; align-items:flex-start; height:64vh; padding-top:64px;">
+<div class="shorts-container" style="display:flex; justify-content:center; align-items:center; height:72vh; padding-top:24px;">
   <style>
     /* Arrange player and details side-by-side */
     .shorts-row { display:flex; gap:24px; align-items:flex-start; width:100%; justify-content:center; }
@@ -9,6 +9,8 @@
     .shorts-details .btn { padding:10px 14px; font-size:0.95rem; }
     footer { position:relative; z-index:1; clear:both; margin-top:28px; }
     @media(max-width:900px){ .shorts-row { flex-direction:column; align-items:center } .shorts-details { width:90% !important } }
+    /* ensure the row is vertically centered */
+    .shorts-row { align-items:center; }
   </style>
   <div class="shorts-row">
     <div id="vf-shorts-player" class="vf-shorts-player" data-video-src="{{ url_for('main.uploaded_file', filename=video.filename) }}" data-video-id="{{ video.id }}">
