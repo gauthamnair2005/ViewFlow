@@ -1380,10 +1380,6 @@ def shorts(video_id):
             abort(404)
     return render_template('shorts.html', title=video.title, video=video)
 
-                           likes=likes, dislikes=dislikes, is_liked=is_liked, is_disliked=is_disliked,
-                           is_subscribed=is_subscribed, comments=comments, resolutions=avail_resolutions,
-                           user_playlists=user_playlists, is_watch_later=is_watch_later, is_saved=is_saved,
-                           saved_playlist_ids=saved_playlist_ids)
 
 def is_ajax(request):
     return request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.args.get('ajax')
