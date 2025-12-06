@@ -87,6 +87,12 @@ def home():
 @main_bp.route('/watch/<int:video_id>')
 def watch(video_id):
     video = Video.query.get_or_404(video_id)
+    # If this video is flagged as a short, redirect to shorts player
+    try:
+        if getattr(video, 'is_short', False):
+            return redirect(url_for('main.shorts', video_id=video_id))
+    except Exception:
+        pass
     # Only allow watching private videos if owner
     if not video.is_public:
         if not (current_user.is_authenticated and current_user.id == video.user_id):
