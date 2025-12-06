@@ -1258,6 +1258,12 @@ def upload():
 @main_bp.route('/watch/<int:video_id>')
 def watch(video_id):
     video = Video.query.get_or_404(video_id)
+    # Redirect to shorts player if video marked as short
+    try:
+        if getattr(video, 'is_short', False):
+            return redirect(url_for('main.shorts', video_id=video_id))
+    except Exception:
+        pass
     # Only allow watching private videos if owner
     if not getattr(video, 'is_public', True):
         if not (current_user.is_authenticated and current_user.id == video.user_id):
@@ -1360,6 +1366,20 @@ def watch(video_id):
     })
 
     return render_template('watch.html', title=video.title, video=video, recommended=recommended,
+                           likes=likes, dislikes=dislikes, is_liked=is_liked, is_disliked=is_disliked,
+                           is_subscribed=is_subscribed, comments=comments, user_playlists=user_playlists, is_watch_later=is_watch_later, is_saved=is_saved,
+                           saved_playlist_ids=saved_playlist_ids)
+
+
+@main_bp.route('/shorts/<int:video_id>')
+def shorts(video_id):
+    video = Video.query.get_or_404(video_id)
+    # Only allow public or owner
+    if not getattr(video, 'is_public', True):
+        if not (current_user.is_authenticated and current_user.id == video.user_id):
+            abort(404)
+    return render_template('shorts.html', title=video.title, video=video)
+
                            likes=likes, dislikes=dislikes, is_liked=is_liked, is_disliked=is_disliked,
                            is_subscribed=is_subscribed, comments=comments, resolutions=avail_resolutions,
                            user_playlists=user_playlists, is_watch_later=is_watch_later, is_saved=is_saved,
