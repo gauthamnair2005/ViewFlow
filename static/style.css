@@ -13,6 +13,7 @@
     --progress-bg: rgba(255,255,255,0.06);
     --tooltip-bg: rgba(0,0,0,0.8);
     --tooltip-fg: var(--text-main);
+    --shared-gradient-colors: #fff1e6, #ffd6a5, #ffb4a2, #fff7c2, #d8f4c8, #e6f7ff, #f9f0ff;
 }
 body { margin: 0; font-family: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--bg-color); color: var(--text-main); }
 
@@ -31,24 +32,80 @@ body.theme-light {
     --progress-bg: rgba(0,0,0,0.08);
     --tooltip-bg: rgba(255,255,255,0.96);
     --tooltip-fg: var(--text-main);
-    background: linear-gradient(125deg, #faf0e6, #faebeb, #f0f5fa, #fafaf0);
+
+    /* animated multi-stop gradient with steam-like moving blobs */
+    --gradient-angle: 125deg;
+    --gradient-speed: 18s;
+    --gradient-colors: var(--shared-gradient-colors);
+    /* light tint layer above the shared gradient to keep content readable */
+    background: linear-gradient(rgba(255,255,255,0.22), rgba(255,255,255,0.06)), linear-gradient(var(--gradient-angle), var(--gradient-colors));
+    background-blend-mode: overlay, normal;
     background-size: 400% 400%;
-    animation: subtleGradient 20s ease infinite;
+    animation: steamGradient var(--gradient-speed) linear infinite;
+    position: relative;
 }
 
-/* Explicit dark theme class (defaults already dark) */
-@keyframes subtleGradient {
+@keyframes steamGradient {
     0% { background-position: 0% 50%; }
+    25% { background-position: 50% 25%; }
     50% { background-position: 100% 50%; }
+    75% { background-position: 50% 75%; }
     100% { background-position: 0% 50%; }
 }
 
+/* moving soft 'steam' blobs that overlay and blend with the gradient */
+body.theme-light::before {
+    content: "";
+    position: fixed;
+    inset: -20%;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(30% 30% at 10% 20%, rgba(255,220,200,0.25), transparent 40%),
+      radial-gradient(28% 28% at 80% 70%, rgba(200,230,255,0.22), transparent 42%),
+      radial-gradient(22% 22% at 50% 40%, rgba(240,200,255,0.18), transparent 45%);
+    filter: blur(40px) saturate(140%);
+    mix-blend-mode: screen;
+    animation: steamBlobs 30s linear infinite;
+}
+
+@keyframes steamBlobs {
+    0% { transform: translate(0,0) rotate(0deg); opacity: 0.7; }
+    50% { transform: translate(6%, -8%) rotate(90deg); opacity: 0.85; }
+    100% { transform: translate(0,0) rotate(360deg); opacity: 0.7; }
+}
+
+/* Explicit dark theme class (defaults already dark) */
 body.theme-dark {
     --text-main: #ffffff;
     --text-sec: rgba(255,255,255,0.86);
-    background: linear-gradient(125deg, #0f0f0f, #1a0b14, #0a141a, #14140a);
+
+    --gradient-angle: 125deg;
+    --gradient-speed: 22s;
+    --gradient-colors: var(--shared-gradient-colors);
+    /* dark tint layer above the shared gradient to mute brightness and ensure contrast */
+    background: linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.6)), linear-gradient(var(--gradient-angle), var(--gradient-colors));
+    background-blend-mode: multiply, normal;
     background-size: 400% 400%;
-    animation: subtleGradient 20s ease infinite;
+    animation: steamGradient var(--gradient-speed) linear infinite;
+    position: relative;
+}
+
+/* subtle colored blobs for dark theme */
+body.theme-dark::before {
+    content: "";
+    position: fixed;
+    inset: -25%;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(26% 26% at 15% 25%, rgba(255,200,140,0.025), transparent 40%),
+      radial-gradient(24% 24% at 78% 68%, rgba(180,240,180,0.02), transparent 42%),
+      radial-gradient(20% 20% at 52% 42%, rgba(200,170,255,0.018), transparent 45%);
+    filter: blur(28px) saturate(105%);
+    mix-blend-mode: multiply;
+    opacity: 0.45;
+    animation: steamBlobs 34s linear infinite;
 }
 
 /* Ensure header/navbar and interactive text are pure white in dark theme */
@@ -648,16 +705,22 @@ footer p { margin: 6px 0; }
 }
 /* Dark theme glass */
 body.theme-dark .vf-menu, body.theme-dark #search-suggestions, body.theme-dark .upload-tooltip, body.theme-dark .vjs-suggestions-inner {
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border: 1px solid rgba(255,255,255,0.04);
+    /* subtle dark tint + stronger blur for contrast on vibrant backgrounds */
+    background: linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.3));
+    border: 1px solid rgba(0,0,0,0.5);
+    backdrop-filter: blur(18px) saturate(120%);
+    -webkit-backdrop-filter: blur(18px) saturate(120%);
 }
 /* Light theme glass */
 body.theme-light .vf-menu, body.theme-light #search-suggestions, body.theme-light .upload-tooltip, body.theme-light .vjs-suggestions-inner {
-    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.5));
-    border: 1px solid rgba(0,0,0,0.06);
+    /* light tint with blur to keep suggestions readable */
+    background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.6));
+    border: 1px solid rgba(0,0,0,0.08);
+    backdrop-filter: blur(18px) saturate(120%);
+    -webkit-backdrop-filter: blur(18px) saturate(120%);
 }
 
-#search-suggestions { position: absolute; top: 100%; left: 0; right: 0; z-index: 120; display: none; overflow: hidden; }
+#search-suggestions { position: absolute; top: 100%; left: 0; right: 0; z-index: 120; display: none; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border-radius: 12px; }
 
 
 /* Big play overlay centered */
