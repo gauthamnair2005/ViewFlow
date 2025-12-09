@@ -269,7 +269,28 @@ document.addEventListener('DOMContentLoaded', function () {
           } catch (e) { qualityMenu.style.display = 'none'; }
       });
   } else {
-      if (qualityBtn) qualityBtn.style.display = 'none';
+      if (qualityBtn) {
+           // Show a minimal quality menu even when no alternate resolutions are provided
+           qualityBtn.style.display = 'inline-block';
+           if (qualityMenu) {
+               qualityMenu.style.backdropFilter = 'blur(6px)';
+               qualityMenu.style.background = 'rgba(0,0,0,0.45)';
+               qualityMenu.style.border = '1px solid rgba(255,255,255,0.06)';
+               qualityMenu.style.minWidth = '120px';
+               qualityMenu.innerHTML = '';
+               var origItem = document.createElement('div');
+               origItem.textContent = 'Original';
+               origItem.style.padding = '8px 10px';
+               origItem.style.cursor = 'pointer';
+               origItem.style.color = '#fff';
+               origItem.addEventListener('mouseenter', function(){ origItem.style.background='rgba(255,255,255,0.06)';});
+               origItem.addEventListener('mouseleave', function(){ origItem.style.background='transparent';});
+               origItem.addEventListener('click', function(){ qualityMenu.style.display = 'none'; });
+               qualityMenu.appendChild(origItem);
+           }
+           // simple toggle for the quality menu
+           qualityBtn.addEventListener('click', function(e){ e.stopPropagation(); if (!qualityMenu) return; qualityMenu.style.display = qualityMenu.style.display === 'block' ? 'none' : 'block'; });
+       }
   }
 
   function setCaptionsEnabled(on) {
