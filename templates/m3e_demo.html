@@ -1,0 +1,457 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .demo-section {
+        margin-bottom: 48px;
+        padding: 24px;
+        background: var(--md-sys-color-surface-container);
+        border-radius: var(--md-shape-card);
+        border: 1px solid var(--md-sys-color-outline-variant);
+    }
+    
+    .demo-title {
+        font-size: var(--md-sys-typescale-headline-small);
+        margin-bottom: 16px;
+        color: var(--md-sys-color-primary);
+    }
+    
+    .demo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+    }
+    
+    .demo-item {
+        padding: 16px;
+        background: var(--md-sys-color-surface-container-high);
+        border-radius: var(--md-shape-corner-md);
+        text-align: center;
+    }
+    
+    .component-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        margin-top: 16px;
+    }
+</style>
+
+<div class="container">
+    <h1 style="margin-bottom: 8px;">Material 3 Expressive UI</h1>
+    <p style="color: var(--text-sec); margin-bottom: 32px;">A showcase of M3E components implemented in ViewFlow</p>
+    
+    <!-- Buttons Section -->
+    <section class="demo-section">
+        <h2 class="demo-title">Buttons</h2>
+        <div class="component-preview">
+            <button class="btn btn-accent">Primary Button</button>
+            <button class="btn btn-primary">Secondary Button</button>
+            <button class="btn btn-secondary">Tertiary Button</button>
+            <button class="btn btn-sm btn-accent">Small Button</button>
+            <button class="icon-btn" title="Icon Button">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+            </button>
+        </div>
+    </section>
+
+    <!-- FAB Section -->
+    <section class="demo-section">
+        <h2 class="demo-title">Floating Action Buttons (FAB)</h2>
+        <div class="component-preview">
+            <button class="fab" style="position: relative; bottom: auto; right: auto;">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+            </button>
+            <button class="fab fab-extended" style="position: relative; bottom: auto; right: auto;">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                </svg>
+                <span class="fab-label">Create</span>
+            </button>
+            <button class="fab fab-small" style="position: relative; bottom: auto; right: auto;">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                </svg>
+            </button>
+            <button class="fab fab-secondary" style="position: relative; bottom: auto; right: auto;">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                </svg>
+            </button>
+        </div>
+    </section>
+
+    <!-- Cards Section -->
+    <section class="demo-section">
+        <h2 class="demo-title">Cards with Expressive Shapes</h2>
+        <div class="demo-grid">
+            <div class="demo-item" style="border-radius: var(--md-shape-card);">
+                <h4>Asymmetric Card</h4>
+                <p style="font-size: 0.875rem; color: var(--text-sec);">16px 16px 28px 4px</p>
+            </div>
+            <div class="demo-item" style="border-radius: var(--md-shape-corner-xl);">
+                <h4>Large Rounded</h4>
+                <p style="font-size: 0.875rem; color: var(--text-sec);">28px uniform</p>
+            </div>
+            <div class="demo-item" style="border-radius: var(--md-shape-corner-md);">
+                <h4>Medium Rounded</h4>
+                <p style="font-size: 0.875rem; color: var(--text-sec);">12px uniform</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chips Section -->
+    <section class="demo-section">
+        <h2 class="demo-title">Chips</h2>
+        <div class="component-preview">
+            <span class="chip">Default Chip</span>
+            <span class="chip chip-filled">Filled Chip</span>
+            <span class="chip chip-elevated">Elevated Chip</span>
+            <span class="chip chip-selected">Selected Chip</span>
+            <span class="chip">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                With Icon
+            </span>
+        </div>
+    </section>
+
+    <!-- Badges Section -->
+    <section class="demo-section">
+        <h2 class="demo-title">Badges</h2>
+        <div class="component-preview">
+            <span class="badge">3</span>
+            <span class="badge badge-small">12</span>
+            <span class="badge badge-large">99+</span>
+            <span class="badge badge-primary">New</span>
+            <span class="badge badge-secondary">Beta</span>
+            <span class="badge badge-tertiary">Pro</span>
+        </div>
+    </section>
+
+    <!-- Form Elements -->
+    <section class="demo-section">
+        <h2 class="demo-title">Form Elements</h2>
+        <div style="max-width: 500px;">
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Text Input</label>
+                <input type="text" placeholder="Enter text here..." style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Textarea</label>
+                <textarea placeholder="Enter description..." rows="4" style="width: 100%;"></textarea>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Select Dropdown</label>
+                <select style="width: 100%;">
+                    <option>Option 1</option>
+                    <option>Option 2</option>
+                    <option>Option 3</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <!-- Progress Indicators -->
+    <section class="demo-section">
+        <h2 class="demo-title">Progress Indicators</h2>
+        <div style="max-width: 500px;">
+            <p style="margin-bottom: 8px; font-size: 0.875rem;">Linear Progress (50%)</p>
+            <div class="progress-linear">
+                <div class="progress-linear-bar" style="width: 50%;"></div>
+            </div>
+            <p style="margin-top: 16px; margin-bottom: 8px; font-size: 0.875rem;">Indeterminate Progress</p>
+            <div class="progress-linear progress-linear-indeterminate">
+                <div class="progress-linear-bar" style="position: relative;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- List Items -->
+    <section class="demo-section">
+        <h2 class="demo-title">List Items</h2>
+        <div style="max-width: 500px;">
+            <div class="list-item">
+                <div class="list-item-leading">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <div class="list-item-content">
+                    <div class="list-item-title">List Item Title</div>
+                    <div class="list-item-subtitle">Supporting text goes here</div>
+                </div>
+                <div class="list-item-trailing">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="list-item">
+                <div class="list-item-leading">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm0 4c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm6 12H6v-1.4c0-2 4-3.1 6-3.1s6 1.1 6 3.1V19z"/>
+                    </svg>
+                </div>
+                <div class="list-item-content">
+                    <div class="list-item-title">Another List Item</div>
+                    <div class="list-item-subtitle">More information text</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dividers -->
+    <section class="demo-section">
+        <h2 class="demo-title">Dividers</h2>
+        <p>Default Divider</p>
+        <hr class="divider">
+        <p>Strong Divider</p>
+        <hr class="divider divider-strong">
+        <p>Inset Divider</p>
+        <hr class="divider divider-inset">
+    </section>
+
+    <!-- Surface Tints -->
+    <section class="demo-section">
+        <h2 class="demo-title">Surface Tints</h2>
+        <div class="demo-grid">
+            <div class="surface-tint-1" style="padding: 24px; border-radius: var(--md-shape-corner-md);">
+                <h4>Surface Tint 1</h4>
+                <p style="font-size: 0.875rem; color: var(--text-sec);">Lowest elevation</p>
+            </div>
+            <div class="surface-tint-2" style="padding: 24px; border-radius: var(--md-shape-corner-md);">
+                <h4>Surface Tint 2</h4>
+                <p style="font-size: 0.875rem; color: var(--text-sec);">Low elevation</p>
+            </div>
+            <div class="surface-tint-3" style="padding: 24px; border-radius: var(--md-shape-corner-md);">
+                <h4>Surface Tint 3</h4>
+                <p style="font-size: 0.875rem; color: var(--text-sec);">Medium elevation</p>
+            </div>
+            <div class="surface-tint-4" style="padding: 24px; border-radius: var(--md-shape-corner-md);">
+                <h4>Surface Tint 4</h4>
+                <p style="font-size: 0.875rem; color: var(--text-sec);">High elevation</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Typography Scale -->
+    <section class="demo-section">
+        <h2 class="demo-title">Typography Scale</h2>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="font-size: var(--md-sys-typescale-display-large); font-weight: 600;">Display Large</div>
+            <div style="font-size: var(--md-sys-typescale-headline-large); font-weight: 600;">Headline Large</div>
+            <div style="font-size: var(--md-sys-typescale-headline-medium); font-weight: 600;">Headline Medium</div>
+            <div style="font-size: var(--md-sys-typescale-title-large); font-weight: 600;">Title Large</div>
+            <div style="font-size: var(--md-sys-typescale-body-large);">Body Large</div>
+            <div style="font-size: var(--md-sys-typescale-body-medium);">Body Medium</div>
+            <div style="font-size: var(--md-sys-typescale-label-large); font-weight: 500;">Label Large</div>
+            <div style="font-size: var(--md-sys-typescale-label-small); font-weight: 500;">Label Small</div>
+        </div>
+    </section>
+
+    <!-- Snackbar Demo -->
+    <section class="demo-section">
+        <h2 class="demo-title">Snackbar</h2>
+        <button class="btn btn-accent" onclick="showSnackbar()">Show Snackbar</button>
+    </section>
+
+    <!-- Extended Expressive Shapes -->
+    <section class="demo-section">
+        <h2 class="demo-title">Extended M3E Expressive Shapes</h2>
+        <p style="color: var(--text-sec); margin-bottom: 16px;">Creative asymmetric patterns for unique personality</p>
+        
+        <h3 style="font-size: 1rem; margin: 24px 0 12px 0; color: var(--md-sys-color-primary);">Diagonal Asymmetric</h3>
+        <div class="demo-grid">
+            <div class="demo-item shape-diagonal-sm">
+                <h4>Small</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">4px 12px 4px 12px</p>
+            </div>
+            <div class="demo-item shape-diagonal-md">
+                <h4>Medium</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">8px 16px 8px 16px</p>
+            </div>
+            <div class="demo-item shape-diagonal-lg">
+                <h4>Large</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">12px 24px 12px 24px</p>
+            </div>
+        </div>
+        
+        <h3 style="font-size: 1rem; margin: 24px 0 12px 0; color: var(--md-sys-color-primary);">Top-Heavy (More rounded at top)</h3>
+        <div class="demo-grid">
+            <div class="demo-item shape-top-heavy-sm">
+                <h4>Small</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">12px 12px 4px 4px</p>
+            </div>
+            <div class="demo-item shape-top-heavy-md">
+                <h4>Medium</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">20px 20px 8px 8px</p>
+            </div>
+            <div class="demo-item shape-top-heavy-lg">
+                <h4>Large</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">28px 28px 12px 12px</p>
+            </div>
+        </div>
+        
+        <h3 style="font-size: 1rem; margin: 24px 0 12px 0; color: var(--md-sys-color-primary);">Bottom-Heavy (More rounded at bottom)</h3>
+        <div class="demo-grid">
+            <div class="demo-item shape-bottom-heavy-sm">
+                <h4>Small</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">4px 4px 12px 12px</p>
+            </div>
+            <div class="demo-item shape-bottom-heavy-md">
+                <h4>Medium</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">8px 8px 20px 20px</p>
+            </div>
+            <div class="demo-item shape-bottom-heavy-lg">
+                <h4>Large</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">12px 12px 28px 28px</p>
+            </div>
+        </div>
+        
+        <h3 style="font-size: 1rem; margin: 24px 0 12px 0; color: var(--md-sys-color-primary);">Wave Pattern (Alternating)</h3>
+        <div class="demo-grid">
+            <div class="demo-item shape-wave-sm">
+                <h4>Small</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">12px 4px 12px 4px</p>
+            </div>
+            <div class="demo-item shape-wave-md">
+                <h4>Medium</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">20px 8px 20px 8px</p>
+            </div>
+            <div class="demo-item shape-wave-lg">
+                <h4>Large</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">28px 12px 28px 12px</p>
+            </div>
+        </div>
+        
+        <h3 style="font-size: 1rem; margin: 24px 0 12px 0; color: var(--md-sys-color-primary);">Unique Asymmetric Combinations</h3>
+        <div class="demo-grid">
+            <div class="demo-item shape-unique-1">
+                <h4>Unique 1</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">4px 16px 24px 8px</p>
+            </div>
+            <div class="demo-item shape-unique-2">
+                <h4>Unique 2</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">8px 24px 12px 20px</p>
+            </div>
+            <div class="demo-item shape-unique-3">
+                <h4>Unique 3</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">12px 28px 8px 16px</p>
+            </div>
+            <div class="demo-item shape-unique-4">
+                <h4>Unique 4</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">16px 12px 28px 4px</p>
+            </div>
+            <div class="demo-item shape-unique-5">
+                <h4>Unique 5</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">20px 8px 16px 24px</p>
+            </div>
+        </div>
+        
+        <h3 style="font-size: 1rem; margin: 24px 0 12px 0; color: var(--md-sys-color-primary);">Extreme Expressive (Bold statements)</h3>
+        <div class="demo-grid">
+            <div class="demo-item shape-extreme-1">
+                <h4>Extreme 1</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">4px 32px 4px 32px</p>
+            </div>
+            <div class="demo-item shape-extreme-2">
+                <h4>Extreme 2</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">32px 4px 32px 4px</p>
+            </div>
+            <div class="demo-item shape-extreme-3">
+                <h4>Extreme 3</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">8px 28px 16px 4px</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Animated Shapes -->
+    <section class="demo-section">
+        <h2 class="demo-title">Animated Shape Transitions</h2>
+        <div class="demo-grid">
+            <div class="demo-item shape-morph-hover">
+                <h4>Shape Morph on Hover</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">Hover to see shape change</p>
+            </div>
+            <div class="demo-item shape-pulse-animation">
+                <h4>Pulsing Shape</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">Continuously morphs</p>
+            </div>
+            <div class="demo-item loading-shape">
+                <h4>Loading Shape</h4>
+                <p style="font-size: 0.75rem; color: var(--text-sec);">4-stage morph cycle</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Real Component Examples -->
+    <section class="demo-section">
+        <h2 class="demo-title">Components with New Shapes</h2>
+        
+        <h3 style="font-size: 1rem; margin: 24px 0 12px 0;">Video Rows</h3>
+        <div class="video-row">
+            <h4 style="margin: 0 0 8px 0;">Video Title Here</h4>
+            <p style="margin: 0; font-size: 0.875rem; color: var(--text-sec);">Unique shape that morphs on hover</p>
+        </div>
+        
+        <h3 style="font-size: 1rem; margin: 24px 0 12px 0;">Notification Item</h3>
+        <div class="notification-item">
+            <h4 style="margin: 0 0 8px 0;">New notification</h4>
+            <p style="margin: 0; font-size: 0.875rem; color: var(--text-sec);">Wave shape with hover effect</p>
+        </div>
+        
+        <h3 style="font-size: 1rem; margin: 24px 0 12px 0;">Subscription Card</h3>
+        <div class="subscription-card">
+            <h4 style="margin: 0 0 8px 0;">Channel Name</h4>
+            <p style="margin: 0; font-size: 0.875rem; color: var(--text-sec);">Diagonal asymmetric shape</p>
+        </div>
+    </section>
+
+    <!-- Color Palette -->
+    <section class="demo-section">
+        <h2 class="demo-title">M3E Color Palette</h2>
+        <div class="demo-grid">
+            <div style="padding: 24px; background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); border-radius: var(--md-shape-unique-1);">
+                <strong>Primary</strong>
+            </div>
+            <div style="padding: 24px; background: var(--md-sys-color-secondary); color: var(--md-sys-color-on-secondary); border-radius: var(--md-shape-unique-2);">
+                <strong>Secondary</strong>
+            </div>
+            <div style="padding: 24px; background: var(--md-sys-color-tertiary); color: var(--md-sys-color-on-tertiary); border-radius: var(--md-shape-unique-3);">
+                <strong>Tertiary</strong>
+            </div>
+            <div style="padding: 24px; background: var(--md-sys-color-error); color: var(--md-sys-color-on-error); border-radius: var(--md-shape-unique-4);">
+                <strong>Error</strong>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Snackbar element -->
+<div id="snackbar" class="snackbar">
+    <span class="snackbar-message">This is a snackbar message!</span>
+    <button class="snackbar-action" onclick="hideSnackbar()">Dismiss</button>
+</div>
+
+<script>
+function showSnackbar() {
+    const snackbar = document.getElementById('snackbar');
+    snackbar.classList.add('show');
+    setTimeout(() => {
+        hideSnackbar();
+    }, 3000);
+}
+
+function hideSnackbar() {
+    const snackbar = document.getElementById('snackbar');
+    snackbar.classList.remove('show');
+}
+</script>
+{% endblock %}
