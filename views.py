@@ -178,10 +178,54 @@ def watch(video_id):
     except Exception:
         auto_caption_url = ''
 
+    # Playlist Navigation Context
+    playlist_context = None
+    prev_video_url = None
+    next_video_url = None
+    playlist_id_arg = request.args.get('list')
+    if playlist_id_arg:
+        try:
+            pl = Playlist.query.get(int(playlist_id_arg))
+            if pl:
+                # check access
+                if pl.is_public or (current_user.is_authenticated and current_user.id == pl.user_id):
+                    # valid playlist
+                    playlist_context = pl
+                    # find current index
+                    # Note: pl.videos are ordered by insertion usually. We need a consistent order.
+                    # PlaylistVideo association object might not be ordered in the relationship unless configured.
+                    # We'll assume pl.videos list is ordered.
+                    pl_vids = [pv.video for pv in pl.videos]
+                    try:
+                        # Find index of current video
+                        # We use IDs to find index
+                        curr_idx = -1
+                        for i, v in enumerate(pl_vids):
+                            if v.id == video.id:
+                                curr_idx = i
+                                break
+                        
+                        if curr_idx != -1:
+                            # Prev
+                            if curr_idx > 0:
+                                prev_video_url = url_for('main.watch', video_id=pl_vids[curr_idx-1].id, list=pl.id)
+                            # Next
+                            if curr_idx < len(pl_vids) - 1:
+                                next_video_url = url_for('main.watch', video_id=pl_vids[curr_idx+1].id, list=pl.id)
+                    except ValueError:
+                        pass
+        except Exception:
+            pass
+    
+    # Fallback for Next if not in playlist: First recommendation
+    if not next_video_url and recommended:
+        next_video_url = url_for('main.watch', video_id=recommended[0].id)
+
     return render_template('watch.html', title=video.title, video=video, recommended=recommended,
                            likes=likes, dislikes=dislikes, is_liked=is_liked, is_disliked=is_disliked,
                            is_subscribed=is_subscribed, comments=comments, user_playlists=user_playlists, is_watch_later=is_watch_later, is_saved=is_saved,
-                           saved_playlist_ids=saved_playlist_ids, auto_caption_url=auto_caption_url)
+                           saved_playlist_ids=saved_playlist_ids, auto_caption_url=auto_caption_url,
+                           prev_video_url=prev_video_url, next_video_url=next_video_url, playlist_context=playlist_context)
 
 
 @main_bp.route('/shorts/<int:video_id>')
@@ -915,3 +959,9 @@ def voice_search_api():
             os.remove(temp_webm)
         if os.path.exists(temp_wav):
             os.remove(temp_wav)
+
+
+@main_bp.route('/m3e-demo')
+def m3e_demo():
+    """Material 3 Expressive UI Components Demo Page"""
+    return render_template('m3e_demo.html', title='M3E UI Demo')

@@ -19,6 +19,7 @@ class User(UserMixin, db.Model):
     profile_pic = db.Column(db.String(300), nullable=True)  # Path to profile picture
     bio = db.Column(db.Text, nullable=True)  # Optional bio/description
     notifications_enabled = db.Column(db.Boolean, default=True)
+    favorite_color = db.Column(db.String(7), default='#a8c7fa')  # Material 3 seed color
     videos = db.relationship('Video', backref='uploader', lazy=True)
 
     @property

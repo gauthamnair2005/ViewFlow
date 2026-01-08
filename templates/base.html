@@ -6,7 +6,7 @@
     <title>ViewFlow - {{ title }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300;8..144,400;8..144,500;8..144,600;8..144,700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="stylesheet" href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/11.0.0/css/fabric.min.css">
     {% if config.VIDEOJS_LOCAL %}
@@ -14,44 +14,55 @@
     {% else %}
     <link rel="stylesheet" href="https://vjs.zencdn.net/8.20.0/video-js.css">
     {% endif %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.0.1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=2.0.0">
     <style>
+        /* Page transition animation - Material Motion */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .container {
+            animation: fadeIn 300ms cubic-bezier(0.2, 0, 0, 1);
+        }
+        
         .upload-badge {
             position: absolute;
             bottom: -2px;
             right: -2px;
-            width: 12px;
-            height: 12px;
-            background: var(--accent);
-            border: 2px solid var(--bg-main);
+            width: 10px;
+            height: 10px;
+            background: var(--md-sys-color-primary);
+            border: 2px solid var(--md-sys-color-surface);
             border-radius: 50%;
-            animation: pulse 1.5s infinite;
+            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         @keyframes pulse {
             0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 0.85; }
             100% { transform: scale(1); opacity: 1; }
         }
         .upload-tooltip {
             position: absolute;
             top: 100%;
             right: 0;
-            background: var(--bg-sec);
+            background: var(--md-sys-color-surface-variant);
             border: 1px solid var(--border);
-            padding: 10px;
-            border-radius: 8px;
-            width: 200px;
+            padding: 12px;
+            border-radius: var(--md-shape-corner-md);
+            width: 220px;
             display: none;
             z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 6px 10px 4px rgba(0,0,0,0.15), 0 2px 3px rgba(0,0,0,0.3);
             margin-top: 10px;
         }
         .upload-tooltip.show {
             display: block;
+            animation: fadeIn 200ms cubic-bezier(0.2, 0, 0, 1);
         }
         .upload-item {
-            font-size: 0.85rem;
-            margin-bottom: 5px;
+            font-size: 0.8125rem;
+            margin-bottom: 6px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -62,32 +73,33 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.6);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 2000;
-            backdrop-filter: blur(5px);
         }
         .confirm-box {
-            background: var(--card-bg);
-            padding: 24px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            max-width: 400px;
+            background: var(--md-sys-color-surface-variant);
+            padding: 32px;
+            border-radius: var(--md-shape-corner-xl);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            max-width: 420px;
             width: 90%;
             text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            transform: scale(0.95);
-            animation: modalPop 0.2s forwards;
+            box-shadow: 0 6px 10px 4px rgba(0,0,0,0.15), 0 2px 3px rgba(0,0,0,0.3);
+            transform: scale(0.9);
+            animation: modalPop 250ms cubic-bezier(0.05, 0.7, 0.1, 1) forwards;
         }
         @keyframes modalPop {
             to { transform: scale(1); }
         }
         .confirm-box h3 {
             margin-top: 0;
-            margin-bottom: 20px;
-            color: var(--text-main);
+            margin-bottom: 24px;
+            color: var(--md-sys-color-on-surface);
+            font-size: 1.25rem;
+            font-weight: 600;
         }
         .confirm-actions {
             display: flex;
@@ -189,6 +201,7 @@
     {% else %}
     <script src="https://vjs.zencdn.net/8.20.0/video.min.js"></script>
     {% endif %}
+    <script src="{{ url_for('static', filename='m3-colors.js') }}"></script>
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
     <script src="{{ url_for('static', filename='player.js') }}"></script>
     <!-- shorts player uses same player.js initializer -->

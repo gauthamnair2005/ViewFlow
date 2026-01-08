@@ -1,10 +1,40 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="settings-container" style="max-width: 600px; margin: 2rem auto; padding: 2rem; background: var(--bg-sec); border-radius: 12px;">
-    <h2 style="margin-bottom: 1.5rem;">Settings</h2>
+<div class="settings-container" style="max-width: 700px; margin: 2rem auto; padding: 0;">
+    <h2 style="margin-bottom: 2rem; padding: 0 2rem; font-size: var(--md-sys-typescale-headline-medium);">Settings</h2>
+    
+    <!-- Material 3 Personalization Section -->
+    <div class="settings-section" style="background: var(--md-sys-color-surface-variant); padding: 1.5rem 2rem; margin-bottom: 1.5rem; border-radius: var(--md-shape-corner-xl-top);">
+        <h3 style="margin-bottom: 1rem; font-size: var(--md-sys-typescale-title-large); display: flex; align-items: center; gap: 0.5rem;">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+            Personalization
+        </h3>
+        <p style="color: var(--text-sec); margin-bottom: 1.5rem; font-size: var(--md-sys-typescale-body-medium);">Customize ViewFlow with your favorite color</p>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.75rem; font-weight: 500; font-size: var(--md-sys-typescale-label-large);">Your Color</label>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <input type="color" id="favorite-color-picker" value="{{ current_user.favorite_color or '#a8c7fa' }}" 
+                       style="width: 60px; height: 60px; border-radius: var(--md-shape-corner-md); border: 2px solid var(--border); cursor: pointer;">
+                <div>
+                    <p style="margin: 0; font-weight: 500; font-size: var(--md-sys-typescale-body-medium);" id="color-value">{{ current_user.favorite_color or '#a8c7fa' }}</p>
+                    <p style="margin: 4px 0 0 0; color: var(--text-sec); font-size: var(--md-sys-typescale-label-medium);">Material 3 Dynamic Color</p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.75rem; font-weight: 500; font-size: var(--md-sys-typescale-label-large);">Preset Colors</label>
+            <div id="preset-colors" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+        </div>
+        
+        <button id="apply-color-btn" class="btn btn-accent" style="margin-top: 1rem;">Apply Color</button>
+    </div>
     
     <form method="POST" enctype="multipart/form-data">
+        <div class="settings-section" style="background: var(--md-sys-color-surface-variant); padding: 1.5rem 2rem; margin-bottom: 1.5rem; border-radius: var(--md-shape-corner-lg);">
+            <h3 style="margin-bottom: 1.5rem; font-size: var(--md-sys-typescale-title-large);">Profile</h3>
         <div class="form-group" style="margin-bottom: 1.5rem;">
             <label style="display: block; margin-bottom: 0.5rem;">Profile Picture</label>
             <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
@@ -34,9 +64,12 @@
             <input type="email" name="email" id="email" value="{{ current_user.email }}" required class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 6px; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-main);">
         </div>
 
+        <div class="settings-section" style="background: var(--md-sys-color-surface-variant); padding: 1.5rem 2rem; margin-bottom: 1.5rem; border-radius: var(--md-shape-corner-lg);">
+            <h3 style="margin-bottom: 1.5rem; font-size: var(--md-sys-typescale-title-large);">Additional Information</h3>
+
         <div class="form-group" style="margin-bottom: 1.5rem;">
-            <label for="bio" style="display: block; margin-bottom: 0.5rem;">Bio</label>
-            <textarea name="bio" id="bio" rows="4" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 6px; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-main);">{{ current_user.bio or '' }}</textarea>
+            <label for="bio" style="display: block; margin-bottom: 0.5rem; font-size: var(--md-sys-typescale-label-large);">Bio</label>
+            <textarea name="bio" id="bio" rows="4" class="form-control">{{ current_user.bio or '' }}</textarea>
         </div>
 
         <div class="form-group" style="margin-bottom: 1.5rem;">
@@ -60,12 +93,99 @@
             <input type="date" name="date_of_birth" id="date_of_birth" value="{{ current_user.date_of_birth or '' }}" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 6px; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-main);">
         </div>
 
-        <div class="form-group" style="margin-bottom: 1.5rem; display: flex; align-items: center;">
-            <input type="checkbox" name="notifications_enabled" id="notifications_enabled" {% if current_user.notifications_enabled %}checked{% endif %} style="margin-right: 0.5rem;">
-            <label for="notifications_enabled">Enable Notifications for New Uploads</label>
+        <div class="settings-section" style="background: var(--md-sys-color-surface-variant); padding: 1.5rem 2rem; border-radius: var(--md-shape-corner-lg);">
+            <h3 style="margin-bottom: 1.5rem; font-size: var(--md-sys-typescale-title-large);">Preferences</h3>
+        
+        <div class="form-group" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+            <input type="checkbox" name="notifications_enabled" id="notifications_enabled" {% if current_user.notifications_enabled %}checked{% endif %} 
+                   style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent);">
+            <label for="notifications_enabled" style="cursor: pointer; font-size: var(--md-sys-typescale-body-medium);">Enable Notifications for New Uploads</label>
         </div>
 
-        <button type="submit" class="btn btn-accent" style="padding: 0.75rem 1.5rem;">Save Changes</button>
+        <input type="hidden" name="favorite_color" id="favorite-color-input" value="{{ current_user.favorite_color or '#a8c7fa' }}">
+        <button type="submit" class="btn btn-accent" style="padding: 0.75rem 1.5rem;">Save All Changes</button>
+        </div>
     </form>
 </div>
+
+<script src="{{ url_for('static', filename='m3-colors.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const colorPicker = document.getElementById('favorite-color-picker');
+    const colorValue = document.getElementById('color-value');
+    const colorInput = document.getElementById('favorite-color-input');
+    const applyBtn = document.getElementById('apply-color-btn');
+    const presetsContainer = document.getElementById('preset-colors');
+    
+    // Render preset colors
+    presetColors.forEach(preset => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'preset-color-btn';
+        btn.style.cssText = `
+            width: 48px; 
+            height: 48px; 
+            border-radius: var(--md-shape-corner-md); 
+            border: 2px solid var(--border); 
+            background: ${preset.color}; 
+            cursor: pointer;
+            transition: all var(--md-motion-duration-short3) var(--md-motion-easing-standard);
+        `;
+        btn.title = preset.name;
+        btn.onclick = () => {
+            colorPicker.value = preset.color;
+            colorValue.textContent = preset.color;
+            colorInput.value = preset.color;
+        };
+        btn.onmouseenter = () => btn.style.transform = 'scale(1.1)';
+        btn.onmouseleave = () => btn.style.transform = 'scale(1)';
+        presetsContainer.appendChild(btn);
+    });
+    
+    // Update color value display
+    colorPicker.addEventListener('input', () => {
+        colorValue.textContent = colorPicker.value;
+        colorInput.value = colorPicker.value;
+    });
+    
+    // Apply color theme immediately
+    applyBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isDark = document.body.classList.contains('theme-dark') || 
+                      !document.body.classList.contains('theme-light');
+        applyM3Theme(colorPicker.value, isDark);
+        
+        // Show feedback
+        applyBtn.textContent = 'Applied!';
+        setTimeout(() => {
+            applyBtn.textContent = 'Apply Color';
+        }, 2000);
+    });
+    
+    // Load user's saved color on page load
+    const userColor = colorInput.value;
+    if (userColor && userColor !== '#a8c7fa') {
+        const isDark = document.body.classList.contains('theme-dark') || 
+                      !document.body.classList.contains('theme-light');
+        applyM3Theme(userColor, isDark);
+    }
+});
+</script>
+
+<style>
+.settings-section {
+    position: relative;
+    z-index: 1;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: var(--md-shape-corner-xs);
+    background: var(--md-sys-color-surface);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    font-size: var(--md-sys-typescale-body-medium);
+}
+</style>
 {% endblock %}

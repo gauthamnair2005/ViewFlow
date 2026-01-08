@@ -27,6 +27,14 @@
              btn.innerHTML = getIcon(isLight) + textHtml;
         }
     });
+    
+    // Reapply M3 dynamic color if exists
+    if (typeof applyM3Theme === 'function') {
+        var savedColor = localStorage.getItem('m3-seed-color');
+        if (savedColor) {
+            applyM3Theme(savedColor, !isLight);
+        }
+    }
   }
 
   var stored = getStored();

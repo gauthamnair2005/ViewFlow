@@ -19,3 +19,6 @@ uploads/
 # Keep bundled models in repo
 !models/
 
+# ER diagrams documentation
+er_diagrams/
+
