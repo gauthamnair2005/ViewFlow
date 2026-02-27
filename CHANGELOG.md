@@ -2,17 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.1] - 2025-12-04
+## [1.0.1] - 2026-02-04
 
 ### Fixed
 - Security hardening and CodeQL fixes: captions handling and safe DOM updates in static/player.js.
 
-## [1.0.0] - 2025-12-04
+## [1.0.0] - 2026-02-04
 
 ### Release
 - Bumped version to 1.0.0; includes the security fixes and improvements from 0.9.x.
 
-## [0.9.2] - 2025-12-04
+## [0.9.2] - 2026-02-04
 
 ### Security
 - **Fixed DOM-based XSS Vulnerability**:
@@ -21,7 +21,7 @@ All notable changes to this project will be documented in this file.
   - Hardened `getSafeVideoUrl` to always return canonical absolute URLs, preventing relative path exploits.
   - Resolved CodeQL alert for "DOM text reinterpreted as HTML".
 
-## [0.9.1] - 2025-12-03
+## [0.9.1] - 2026-02-03
 
 ### Added
 - **Custom Thumbnail Upload**
@@ -44,7 +44,7 @@ All notable changes to this project will be documented in this file.
   - Fixed database error when deleting videos by explicitly removing related records (Reactions, ViewHistory, Comments) first.
   - Added error logging for deletion failures.
 
-## [0.9.0] - 2025-12-03
+## [0.9.0] - 2026-02-03
 
 ### Added
 - **Analytics Dashboard**
@@ -76,7 +76,7 @@ All notable changes to this project will be documented in this file.
   - Updated seek bar tooltip to be positioned above the bar with a pointed arrow.
   - Heatmap visualization changed from bars to a smooth line graph with filled area.
 
-## [0.8.3] - 2025-12-03
+## [0.8.3] - 2026-02-03
 
 ### Added
 - **Search Suggestions**
@@ -95,7 +95,7 @@ All notable changes to this project will be documented in this file.
   - Improved light theme with very pale, non-intrusive gradient colors.
   - Updated `static/style.css` with new animations and component styles.
 
-## [0.8.2] - 2025-12-02
+## [0.8.2] - 2026-02-02
 
 ### Added
 - **Profile Settings & Management**
@@ -122,14 +122,14 @@ All notable changes to this project will be documented in this file.
   - Updated `User` model to include `date_of_birth` column.
   - Added `age` property to `User` model for dynamic calculation.
 
-## [0.8.1] - 2025-12-02
+## [0.8.1] - 2026-02-02
 
 ### Security
 - **Fixed Information Exposure Vulnerability**:
   - Patched `views.py` and `test.py` to prevent returning raw exception messages to the client in the voice search API.
   - Generic error messages are now returned to the user, while detailed errors are logged server-side.
 
-## [0.8.0] - 2025-12-02
+## [0.8.0] - 2026-02-02
 
 ### Added
 - **Voice Search Capability**
@@ -148,7 +148,7 @@ All notable changes to this project will be documented in this file.
   - Un-hardcoded sensitive configuration values (`SECRET_KEY`, `VOSK_MODEL_PATH`) to use environment variables.
   - Updated `app.py` and `test.py` to respect these environment variables.
 
-## [0.7.2] - 2025-12-02
+## [0.7.2] - 2026-02-02
 
 ### Security
 - **Fixed DOM-based XSS Vulnerability**:
@@ -159,12 +159,12 @@ All notable changes to this project will be documented in this file.
 - **Hardened Configuration**:
   - Disabled Flask debug mode by default in `test.py` (now controlled via `FLASK_DEBUG` environment variable).
 
-## [0.7.1] - 2025-12-02
+## [0.7.1] - 2026-02-02
 
 ### Fixed
 - Fixed security vulnerability #19
 
-## [0.7.0] - 2025-12-01
+## [0.7.0] - 2026-02-01
 
 ### Added
 - **Machine Learning Recommendation Engine**
@@ -194,12 +194,12 @@ All notable changes to this project will be documented in this file.
 - **Upload Flow**:
   - Added **Category** dropdown and **Tags** input to the video upload form.
 
-## [0.6.1] - 2025-12-01
+## [0.6.1] - 2026-02-01
 
 ### Fixed
 - Fixed player visibility in fullscreen mode.
 
-## [0.6.0] - 2025-12-01
+## [0.6.0] - 2026-02-01
 
 ### Added
 - **Asynchronous Comments System**
@@ -209,7 +209,7 @@ All notable changes to this project will be documented in this file.
   - Integrated `async_actions.js` to handle comment submission and deletion without page reloads.
   - Comments update dynamically in the UI upon submission.
 
-## [0.5.4] - 2025-12-01
+## [0.5.4] - 2026-02-01
 
 ### Changed
 - Replaced all UI emojis with SVG icons for better visual consistency and scalability.
@@ -219,7 +219,7 @@ All notable changes to this project will be documented in this file.
   - Added Bell icon to Subscribe button.
   - Video thumbnail placeholders.
 
-## [0.5.3] - 2025-12-01
+## [0.5.3] - 2026-02-01
 
 ### Fixed
 - Fixed asynchronous actions (like, dislike, subscribe) causing page reloads.
@@ -227,17 +227,17 @@ All notable changes to this project will be documented in this file.
 - Improved AJAX detection in backend to support `ajax=1` query parameter.
 - Updated `base.html` to reference the correct `async_actions.js` script.
 
-## [0.5.2] - 2025-12-01
+## [0.5.2] - 2026-02-01
 
 ### Fixed
 - Fixed video player timer logic to correctly display hours for long videos (e.g. 1:30:21 instead of 30:21).
 
-## [0.5.1] - 2025-12-01
+## [0.5.1] - 2026-02-01
 
 ### Changed
 - Increased maximum video upload size limit to 16GB (from 2GB).
 
-## [0.5.0] - 2025-12-01
+## [0.5.0] - 2026-02-01
 
 ### Fixed
 - Fixed issue with search causing error.
